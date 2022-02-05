@@ -1,0 +1,199 @@
+命令行命令帮助
+    对应命令/?
+进入终端
+    win+R 输入cmd
+    win 输入cmd
+    Cortana 输入cmd
+
+在目录间游走
+    dir 显示当前路径文件
+    cd 路径名：下一级   输入一部份然后tab可以补全
+    cd\切换到根目录
+    C/D/E:切盘
+    cd..切到上一级，可以用..\..\..
+    cd.当前目录
+    假设当前在D盘，要跳转到C的Users目录  
+    注意此处必须加/d参数。否则无法跳转。
+例：cd // 显示当前目录
+例：cd … // 进入父目录
+例：cd /d d: // 进入上次d盘所在的目录（或在直接输入：d:）
+例：cd /d d:\ // 进入d盘根目录
+例：cd d: // 显示上次d盘所在的目录
+例：cd /d d:\src // 进入d:\src目录
+例：cd prj\src\view // 进入当前目录下的prj\src\view文件夹
+
+目录和文件操作
+    dir展示文件夹,tree树状分支展示结构
+    mkdir name，创建文件夹或md
+    rmdir name，删除文件夹或rd
+    move oldname newname，重命名(前提是newname文件不存在，否者就是移动)
+    echo text>name.type或type name.type,新建非空文件>前无内容写入ECHO 处于打开状态。(回车)
+    type或echo或more name.txt查看文本
+    del name.type或者erase name.type，删除文件
+    copy 路径，复制文件
+
+操作历史
+    上下弹出操作历史
+    !name找出最近的匹配内容
+    ESC：清除当前命令行。
+    F1: 单字符输出上次输入的命令 相当于方向键上的 → 的作用。
+    F2: 可复制字符数量 , 输入上次命令中含有的字符,系统自动删除此字符后的内容。
+    F3: 重新输入前一次输入的命令（方向键上也是同样的作用）。
+    F4: 可删除字符数量,同于F2的功能。
+    F5：相当于方向键上的↑的作用。
+    F6：相当按键盘上的Ctrl＋z 键。
+    F7：显示命令历史记录，以图形列表窗的形式给出所有曾经输入的命令，并可用上下箭头键选择再次执行该命令。
+    F8：搜索命令的历史记录，循环显示所有曾经输入的命令，直到按下回车键为止。
+    F9：按编号选择命令，以图形对话框方式要求您输入命令所对应的编号(从0开始)，并将该命令显示在屏幕上。
+    Ctrl+H：删除光标左边的一个字符。
+    Ctrl+C 或者Ctrl+Break，强行中止命令执行。
+    Ctrl+M：表示回车确认键。
+    Alt+F7：清除所有曾经输入的命令历史记录。
+    Alt+PrintScreen：截取屏幕上当前命令窗里的内容。
+    Tab键：在命令提示符状态下，我们可以按下Tab键来选择当前目录下面的文件和文件夹，它的选择是按照一定顺序来进行的，按下Shift+Tab组合键还可以进行反方向选择。
+    Alt+鼠标双击 打开当前文件的属性。
+    ALT+Enter全屏再按退出。
+
+进程管理
+    tasklist 查看所有进程，
+    tasklist |more 如果tasklist没有显示完，就用这个命令
+    netstat -ano |findstr 61619 根据端口号查看指定进程，一般是查找PID，再根据pid删除进程
+    taskkill PID 根据pid删除对应进程
+
+输入输出重定向
+    程序 <in(将文本内容作为输入) >out(将输出写入文本)
+    程序 | more 将输出内容分页
+    more 文件分页查看
+    tail -n name.type 查看倒数几行,-f持续查看(不写-n就是最后几行)(加入tail.exe)
+    start 新建窗口运行
+
+findstr命令
+    findstr 串 name.type
+    外加-n显示行号:findstr -n 串 name.type
+    外加wc显示个数:findstr -n 串 name.type
+    外加*显示当前路径文件中包含:findstr 串 *
+    find "串" name.type
+    
+环境变量
+    set | findstr Path
+    Path=%PATH%newpath;
+    将path命令放在 autoexec.bat中，Windows会自动追加指定的子系统搜索路径。 
+
+网络配置
+    ipconfig (/all)
+    ipconfig /release或/renew name 关闭/开启
+    或netsh interface set interface name disabled或enable
+    netstat -a
+    set adress
+    详见netstat /?s
+
+网络调试
+    (加入netcat.exe,添加信任)
+    nc -l -p 80
+    telnet ipv4ip 80
+    ctrl+]
+
+远程登陆
+    ssh name@ip
+    ssh 获取命令行
+    whoami
+    net user 用户名 密码 /add /expires:never(永不过期)
+    net user name /delete
+    ner user /?
+
+
+GCC编译器和GDB调试器常用选项
+GCC编译器
+设置中文输出：通过 chcp命令改变代码页，UTF-8的代码页为65001 chcp 65001 
+936 简体中文（默认） 
+
+快速编译gcc x.c y.c -o name
+--save-temps保存中间文件
+gcc -E hello.c -o hello.i  也可以保存.i但只是没有后缀的txt
+
+gcc hello.c -o hello                   #将hello.c编译成hello可执行文件
+gcc -E hello.c -o hello.i              #将hello.c 转换成预处理后的文件hello.i
+gcc -S hello.c -o hello.S              #将hello.c 转换成汇编文件 hello.S
+gcc -c hello.c -o hello.o              #将hello.c 转换成二进制文件 hello.o
+gcc -I dir hello.c -o hello            # -I 后面加路径，指定在dir路径下寻找头文件
+gcc -Wall hello.c -o hello             #显示编译过程中所有的警告信息
+gcc -g hello.c -o hello                #带调试信息的程序，可以用GDB进行调试
+gcc -v hello.c -o hello                #显示执行编译阶段的命令.同时显示编译器驱动程序,预处理器,编译器的版本号
+gcc -nostdinc -I dir hello.c -o hello  #不要在标准系统目录中寻找头文件.只搜索`-I'选项指定的目录(以及当前目录)
+
+编译静态链接库
+gcc -c hello.c -o hello.o                      #先生成目标文件 .o  
+ar crv hello.a hello.o                           #打包为 .a 的静态链接库文件
+gcc cxd.c -o cxd -L /root/desktop/hello.a               #调用自己的静态链接库
+
+编译动态链接库
+gcc -fPIC -c hello.c                             #编译成位置无关的 .o 文件
+gcc -shared hello.o -o hello.so             #生成动态链接库
+gcc cxd.c -o cxd -L /root/desktop/hello.so              #调用自己的动态链接库
+
+
+GDB调试器
+注1：需要调试的程序在编译的时候要加 -g 选项，程序才能进行调试
+注2：以下所有命令都可以简写首字母，例：info break ==> i b 除特殊声明外
+    
+    #gdb program  //进入调试模式
+    #list file.c:fanction    //显示file.c文件中的fanction函数
+    #break file.c:fanction   //在file.c文件中的fanction函数处打一个断点
+    #break file.c:100        //在file.c文件中的第100行打一个断点
+    #info break              //查看所有断点
+    #delete break num        //删除断点号为 num 的断点
+    #run             //开始运行程序(如果设置了断点，就会停在对应的断点，并显示内容)
+    #bt              //显示程序的栈
+    #watch expr      //监视 expr 变量，（每次运行到变量处就会打印变量的值）（watch 不能简写）
+    #print expr      //打印处 expr 变量的值，(当前运行函数中的变量)
+    #c               //继续运行程序
+    #next            //单步运行
+    #quit            //退出调试
+
+
+gcc
+
+在linux系统中，默认是没有安装gcc编译器的，可以通过命令
+rpm -q | grep gcc
+ 来查看。安装命令为：
+yum -y install gcc
+安装后，编写一个.c结尾的文件。
+gcc test.c
+ 就会默认输出一个a.out的输出文件，这个输出文件就是可执行文件。
+如果加上-o选项，则可以自定目标文件。
+gcc -o test test.c  
+test就是它的可执行文件。
+一般都默认加上-Wall 选项，可以自动提示一些出错警告的信息。
+gcc -Wall -o test test.c
+gbd
+以上就是常用的gcc相关知识了。下面就是它的调试，调试通常使用gdb。在编译的时候需要加上选项-ggdb3选项
+gcc -ggdb3 -Wall -o test test.c
+这样在没有出错的情况下
+gdb test
+就进入调试窗口
+输入下面命令可以进行如下的操作：
+break 设置断点
+break 21 在第21行设置断点
+break main 在main函数处设置断点
+break test 在函数test处设置断点
+step /  s  下一步，直接执行下一条程序
+continue / cont 下一段，如果遇到函数，不会进入函数，逐过程，有点类似VS里面的F10
+run 运行
+finish 结束调试
+tbreak设置临时断点
+print / p 显示某个变量的值
+p *array@len 输出数组
+p i 输出i的值
+enable 恢复失效的断点
+disable 使断点失效
+clear 清除断点
+backtrace / bt 查看堆栈信息
+相关的输出格式
+x 十六进制格式
+d 十进制格式
+u 十六进制无符号
+o 八进制显示
+t 二进制显示
+a 十六进制显示
+c 字符格式显示
+f 浮点数格式显示

@@ -1,0 +1,971 @@
+# TensorFlow深度学习
+
+    谷歌第二代人工智能学习系统
+    人工智能不可避免地需要使用正式化的数学符号推导，涉及到少量的概率与统计、线性代数、微积分等数学知识。
+    随着Google的TensorFlow2.0正式版深度学习框架的发布，业界兴起了一股学习更易上手、开发效果更高、使用更灵活的TensorFlow2.0的热潮
+
+## 一、人工智能绪论
+
+    我们需要的是一台可以从经验中学习的机器。——Alan·Turing
+
+### 1.1 人工智能
+
+    通过编程的方式，人类可以将提前设计好的交互逻辑交给机器重复且快速地执行，从而将人类从简单枯燥的重复劳动工作中解脱出来。但是对于需要较高智能水平的任务，如人脸识别、聊天机器人、自动驾驶等任务，很难设计明确的逻辑规则，传统的编程方式显得力不从心，人工智能应运而生。
+    目前能达到的智能水平离通用人工智能(Artificial General Intelligence)还有一段距离，但人工智能时代已经来临。
+
+    人工智能
+        人工智能最早在1956年召开的达特茅斯会议上提出。
+        1970年代，科学家们尝试通过知识库加推理的方式解决人工智能，通过构建庞大复杂的专家系统来模拟人类庄家的智能水平。但问题是很多复杂抽象的概念无法用具体的代码实现，比如人类对图片的识别、对语言的理解过程。机器学习在1980年成为人工智能中的热门学科。
+        在机器学习中，有一门通过神经网络来学习复杂、抽象逻辑的方向，称为神经网络。
+        2012年开始，应用深层神经网络技术在计算机视觉、自然语言处理、机器人等领域取得了重大突破，部分任务上甚至超越了人类智能水平，开启了以深层神经网络为代表的人工职能的第三次复兴。深层神经网络又称为深度学习。二者本质区别并不大，深度学习特质基于深层神经网络实现的模型或算法。
+
+    机器学习
+        机器学习可以分为有监督学习(Supervised Learning)、无监督学习(Unsupervised Learning)和强化学习(Reinforcement Learning, RL)
+        有监督学习：有监督学习的数据集包含了样本x与样本的标签y，算法模型需要学习到映射关系f_θ:x→y，其中f_θ代表模型函数，θ为模型的参数。在训练时，通过计算模型的预测值f_θ(x)和真实标签y之间的误差来优化网络参数θ，使得下一次能够预测更精准。常见的有监督学习有线性回归、逻辑回归、支持向量机、随机森林等
+        无监督学习：收集带标签的数据往往代价较为昂贵，对于只有样本x的数据集，算法需要自行发现数据的模态。无监督学习中有一类算法将自身作为监督信号，即模型需要学习的映射为f_θ:x→x，成为自监督学习(Self-supervised Learning)。在训练时，通过计算模型的预测值f_θ与自身x之间的误差来优化网络参数θ。常见的无监督学习算法有自编码器、生成对抗网络等
+        强化学习：也成为增强学习，通过与环境进行交互来学习解决问题的策略的一类算法。强化学习问题并没有明确的“正确的”动作监督信号，算法需要与环境进行交互，获取环境反馈的滞后的奖励信号，因此并不能通过计算动作与“正确动作”之间的误差来优化网络。常见的强化学习算法有DQN、PPO等
+
+    神经网络与深度学习
+        神经网络算法是一类基于神经网络从数据中学习的算法，仍然属于机器学习的范畴。受限于计算能力和数据量，早期的神经网络层数较浅，一般在1-4层左右，网络表达能力有限。
+        
+        省略
+        以下主要为笔记，知识型介绍掠过
+        
+        tensorflow2完成加法运算
+        ```
+        import tensorflow as tf
+        a=tf.constant(2.)
+        b=tf.constant(4.)
+        print('a+b=',a+b)
+        ```python
+        相对于tensorflow1简化较多，同时创建计算图和数值结果称为命令式编程，也成为动态图模式，开发效率高，但是运行效率可能不如静态图模式。也支持通过tf.function转化为静态图模式
+        
+        三大核心功能
+            1利用gpu进行加速运算
+                ```
+                # cpu和gpu算力测试，1e6时gpu开始超过cpu
+                n=100000
+                with tf.device('/cpu:0'):
+                    cpu_a=tf.random.normal([1,n])
+                    cpu_b=tf.random.normal([n,1])
+                    print(cpu_a.device,cpu_b.device)
+                with tf.device('/gpu:0'):
+                    gpu_a=tf.random.normal([1,n])
+                    gpu_b=tf.random.normal([n,1])
+                    print(gpu_a.device,gpu_b.device)
+                def cpu_run():
+                    with tf.device('/cpu:0'):
+                        c=tf.matmul(cpu_a,cpu_b)
+                    return c
+                def gpu_run():
+                    with tf.device('/gpu:0'):
+                        c=tf.matmul(gpu_a,gpu_b)
+                    return c
+                cpu_time=timeit.timeit(cpu_run,number=10)
+                gpu_time=timeit.timeit(gpu_run,number=10)
+                print('warmup:',cpu_time,gpu_time)
+                cpu_time=timeit.timeit(cpu_run,number=10)
+                gpu_time=timeit.timeit(gpu_run,number=10)
+                print('run_time:',cpu_time,gpu_time)
+                ```python
+            2自动梯度
+                ```
+                a=tf.constant(1.0)
+                b=tf.constant(2.0)
+                c=tf.constant(3.0)
+                w=tf.constant(4.0)
+                with tf.GradientTape() as tape:#构建梯度环境
+                    tape.watch([w])#将w加入梯度跟踪列表
+                    #构建计算过程，函数表达式
+                    y=a*w**2+b*w+c
+                [dy_dw]=tape.gradient(y,[w])
+                print(dy_dw)
+                ```python
+            3常用神经网络接口
+                内建了常用神经网络计算函数、常用网络层、网络训练、模型保存与加载、网络部署等一系列深度学习系统的便捷功能。
+
+        cuda并不是针对于神经网络专门的GPU加速库，而是面向各种需要并行计算的应用设计。而cuDNN则是针对于神经网络应用加速
+        
+        ipython可以进入交互式终端
+        使用tf.test.is_gpu_available()测试GPU是否可用
+
+        TensorFlow在运行时，默认会占用所有的GPU显存资源，是非常不友好的行为，可以设置为增长式占用模式，根据实际模型大小申请显存资源
+            gpus=tf.config.experimental.list_physical_devices('GPU')
+            if gpus:
+                try:
+                    #设置GPU为增长式占用
+                    for gpu in gpus:
+                        tf.config.experimental.set_memory_growth(gpu,True)
+                except RuntimeError as e:
+                    print(e)
+
+## 二、回归问题
+
+    有些人担心人工智能会让人类觉得自卑，但是实际上，即使是看到一朵花，我们也应该或多或少感到一些自愧不如。——艾伦·凯
+
+### 2.1 神经元模型
+
+### 2.2 优化方法
+
+    均方误差
+    数值方法优化：暴力搜索、随机实验、梯度下降算法
+
+### 2.3 线性模型
+
+    以下为例子
+    # y=1.477x+0.089+epsilon,N(0,0.01^2)
+    # 采样数据
+    data=[] #保存样本集
+    for i in range (100):
+        x=np.random.uniform(-10.,10.)
+        eps=np.random.normal(0.,0.01)
+        y=1.477*x+0.089+eps
+        data.append([x,y])
+    data=np.array(data)
+    # 计算误差
+    def  mse(b,w,points):
+        totalError=0
+        for i in range(0,len(points)):
+            x=points[i,0]
+            y=points[i,1]
+            totalError+=(y-(w*x+b))**2
+        return totalError/float(len(points))
+    # 计算梯度
+    def step_gradient(b_current,w_current,points,lr):
+        b_gradient=0
+        w_gradient=0
+        M=float(len(points))
+        for i in range(0,len(points)):
+            x=points[i,0]
+            y=points[i,1]
+            b_gradient+=(2/M)*((w_current*x+b_current)-y)
+            w_gradient+=(2/M)*x*((w_current*x+b_current)-y)
+        new_b=b_current-(lr*b_gradient)
+        new_w=w_current-(lr*w_gradient)
+        return [new_b,new_w]
+    # 梯度更新
+    def gradient_decent(points,startint_b,starting_w,lr,num_iterations):
+        b=startint_b
+        w=starting_w
+        for step in range(num_iterations):
+            b,w=step_gradient(b,w,np.array(points),lr)
+            loss=mse(b,w,points)
+            if step%50 == 0:
+                print(f"iteration:{step},loss:{loss},w:{w},b:{b}")
+        return [b,w]
+    def main():
+        lr=0.01 #学习率
+        initial_b=0
+        initial_w=0
+        num_iterations=1000
+        [b,w]=gradient_decent(data,initial_b,initial_w,lr,num_iterations)
+        loss=mse(b,w,data)
+        print(f'Final loss:{loss},w:{w},b:{b}')
+    if __name__=="__main__":
+        main()
+
+### 2.4 线性回归
+
+## 三、分类问题
+
+    在人工智能上花一年时间，这足以让人相信上帝的存在。——艾伦·佩利
+
+### 3.1 手写数字图片数据集
+
+    模型泛化能力：模型能够在新样本上也能具有良好的表现，应该尽可能多地增加数据集的规模和多样性。
+
+    MINST数据集，并转化为Numpy数组
+    from tensorflow import keras #导入TF子库keras
+    from tensorflow.keras import layers,optimizers,datasets #导入TF子库
+
+    gpus=tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+        try:
+            #设置GPU为增长式占用
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu,True)
+        except RuntimeError as e:
+            print(e)
+
+    (x,y),(x_val,y_val)=datasets.mnist.load_data()#加载MNIST数据集
+    x=2*tf.convert_to_tensor(x,dtype=tf.float32)/255.-1#转化为浮点张量，并归一化
+    y=tf.convert_to_tensor(y,dtype=tf.int32)
+    y=tf.one_hot(y,depth=10)#ont hot编码
+    print(x.shape,y.shape)
+    train_dataset=tf.data.Dataset.from_tensor_slices((x,y))
+    train_dataset=train_dataset.batch(512)
+    load_data()函数返回两个tuple对象，一个是训练集，一个是测试集
+    每一张图片的计算流程是通用的。用形状为[h,w]的矩阵来表示一张图片，添加一个数量维度，[b,h,w]，b代表Batch Size。彩色图片可用，[b,h,w,c] c for channel。tf的Dataset可以方便完成模型的批量训练，只需要调用batch()函数即可构建带batch功能的数据基对象
+
+### 3.2 模型构建
+
+    one-hot编码，避免数字编码模型主动学习输出结果数字大小关系。将输出设置为d_out个输出节点，每个节点值表示类别概率。但是会占用相对多的存储空间，所以可以在存储时使用数字编码，计算时转换即可。
+        y=tf.constant([x1,x2,x3,x4])#数字编码
+        tf.one_hot(y,depth=n)#转换为类别总数为n的onehot编码
+    一般把输入经过一次(线性)变换称为一层网络
+
+### 3.3 误差计算
+
+    通过优化损失函数L来找到最优数值解
+    但是线性模型较为简单，表达能力较弱
+
+### 3.5 非线性模型
+
+    可以给线性模型嵌套一个激活函数，例如Sigmoid、ReLU
+
+### 3.6 表达能力
+
+    通过重复堆叠多次变换，来增加表达能力
+    深度学习框架，能够自动求导，完成梯度的自动计算和更新
+    对数据集的所有样本迭代一遍叫做Epoch
+    #网络搭建
+    layers.Dense(256,activation='relu')
+    model=keras.Sequential([
+        layers.Dense(256,activation='relu'),
+        layers.Dense(128,activation='relu'),
+        layers.Dense(10),
+    ])
+    with tf.GradientTape() as tape:
+        x=tf.reshape(x,(-1,28*28))#打平
+        out=model(x)#模型输出
+        y_onehot=tf.one_hot(y,depth=10)
+        loss=tf.square(out-y_onehot)
+        loss=tf.reduce_sum(loss)
+    grads=tape.gradient(loss,model.trainabel_variables)
+    optimizers.apply_gradients(zip(grads,model.trainable_variables))
+
+## 四、TensorFlow基础
+
+    我设想在未来，我们可能就相当于机器人的宠物狗，到那时我也会支持机器人的。——克劳德·香农
+
+    TensorFlow是一个面向深度学习算法的科学计算库，内部数据保存在张量Tensor对象上，所有的运算操作(OP)也都是基于Tensor对象进行的。复杂的神经网络算法本质上就是各种张量相乘、相加等基本运算操作的组合。
+
+### 4.1 数据类型
+
+    数值类型
+        数值类型的张量是TensorFlow的主要数据载体，根据维度来区分，可分为
+            标量(Scalar)。单个的实数，维度数为0，shape为[]
+            向量(Vector)。n个实数的有序集合，通过中括号包括，维度数为1，长度不定，shape为[n]
+            矩阵(Matrix)。n行m列实数的有序集合，维度数为2，每个维度长度不定，shape为[n,m]
+            张量(Tensor)。所有维度数dim>2的数组统称为张量。张量的每个维度也成为轴，一般维度代表了具体的物理含义。如果表示图片数据的话，每个维度/轴代表的含义为图片数量、图片高度和宽度的、图片通道数。张量的维度数和维度对应的物理意义需要由用户自行定义。
+        TensorFlow为了表达方便，把标量、向量、矩阵统称为张量。
+        TensorFlow创建标量
+            a=1.2
+            aa=tf.constant(1.2)
+            print(type(a),type(aa),tf.is_tensor(aa))
+            print(aa)
+        通过print(x)可以输出张量x的相关信息
+            id为TensorFlow中内部索引对象的编号，shape表示张量的形状，dtype表示张量的数值精度，张量numpy()方法可以返回Numpy.array类型的数据，方便导出数据到系统的其他模块。
+        向量的定义必须通过List容器传给tf.constant()函数
+
+    字符串类型
+        a=tf.constant('string content')
+        tf.strings模块提供了常见字符串类型的工具函数
+            lower(a)小写化
+            join(a)拼接
+            length(a)长度
+            split(a)切分
+
+    布尔类型
+        a=tf.constant(True)，同样可以创建向量，但是不能与Python的布尔类型等价
+
+### 4.2 数值精度
+
+    数值类型的张量，可以保存为不同字节长度的精度。常用的精度类型有tf.int16、tf.int32、tf.int64、tf.float16、tf.float32、tf.float64(即tf.double)'
+    在创建张量时，可以指定张量的保存精度
+        tf.constant(number,dtype=tf.numtype)
+    对于大部分深度学习算法，一般使用tf.int32和tf.float32即可，部分对于精度要求较高的算法，如强化学习某些算法，可以使用64位
+    读取精度
+        通过访问张量的dtype属性可以判断保存精度
+    类型转换
+        tf.cast(a,tf.dtype)，需要注意转换操作的合法性，是否会发生溢出等
+        布尔类型和整形之间转换也是合法的，非0即True
+
+### 4.3 待优化张量
+
+    区分需要计算梯度信息的张量和不需要计算梯度信息的张量，tf.Variable，增加了name,trainable等属性用以支持计算图的构建’
+        a=tf.constant([-1,0,1,2])
+        aa=tf.Variable(a)#转化为Variable类型
+    name和trainable属性是Variable特有的属性，name属性用于命名计算图中的变量，这套命名体系是TensorFlow内部维护的。创建Variable对象默认启用优化标志
+    待优化张量可视为普通张量的特殊类型，普通张量也可以通过GradientTape.watch()方法临时加入跟踪梯度信息的列表，从而支持自动求导功能
+
+### 4.4 创建张量
+
+    在TensorFlow中，可以通过多种方式来创建张量，如从Python列表对象创建，从Numpy数组创建，或者创建采样自某种已知分布的张量等
+    从数组、列表对象创建
+        tf.convert_to_tensor(list)
+        tf.convert_to_tensor(np.array(list))
+        Numpy浮点数数字默认使用64精度保存
+        tf.constant()和tf.convert_to_tensor()等价，后者为tf1的命名习惯
+    创建全0或全1张量
+        tf.zeros(list),tf.ones(list)
+        tf.zeros_like(a),tf.ones_like(a)#创建shape一致的，tf.zeros(a.shape)也可
+        tf.*_like为一系列便捷函数
+    创建自定义数组张量
+        自定义数值初始化
+            tf.fill(shape,value)#创建全为自定义数字value的张量，形状为shape
+    创建已知分布的张量
+        正态分布和均匀分布是最常见的分布
+        tf.random.normal(shape,mean=0.,stddev=1.)#创建形状为shape，均值为mean，标准差为stddev的正态分布
+        tf.random.uniform(shape,minval=0.,maxval=None,dtype=tf.float32)创建采样自[minval,maxval)的均匀分布的张量，数值类型为dtype
+    创建序列
+        tf.range(start=0,limit,delta=1)#创建[0,limit)之间，步长为delta的整型序列
+
+### 4.5 张量的典型应用
+
+    标量
+        典型用途是误差值的表示、各种测量指标的表示，比如准确度、精度和召回率
+        tf.keras.losses.mse(或tf.keras.lossed.MSE，功能相同)返回样本误差值，取平均作为batch误差
+            out=tf.random.uniform([4,10])
+            y=tf.constant([2,3,2,0])
+            y=tf.one_hot(y,depth=10)
+            loss=tf.keras.losses.mse(y,out)
+            loss=tf.reduce_mean(loss)
+            print(loss)
+    向量
+        例如在全连接层和卷积神经网络层中，偏置张量b使用向量表示
+            z=tf.random.normal([4,2])
+            b=tf.zeros([2])
+            z=z+b
+        z和b能够直接相加，与Broadcasting相关
+        通过高层接口类Dense()方式创建的网络层， 张量w和b存储在类的内部，由类自动创建并管理。
+            fc=layers.Dense(3)
+            fc.build(input_shape=(2,4))
+            fc.bias
+    矩阵
+        例如全连接层的批量输入张量X的形状为[b,d_in]，b为输入样本的个数，Batch Size，d_in表示输入特征的长度
+            x=tf.random.normal([2,4])
+            w=tf.ones([4,3])
+            b=tf.zeros([3])
+            o=x@w+b
+        上述代码实现了线性变换的网络层，激活函数为空。TensorFlow可以通过Dense类直接实现σ(X@W+b)全连接层。
+            fc=layers.Dense(3)
+            fc.build(input_shape=(2,4))
+            fc.kernel
+    三维张量
+        典型应用为表示序列信号
+            X=[b,sequence len,feature len]
+            b表示序列信号的数量，sequence len表示序列信号在时间维度上的采样点数或步数，feature len表示每个点的特征长度
+        为了能够方便字符串被神经网络处理，一般将单词通过嵌入层编码为固定长度的向量。
+            (x_train,y_train),(x_test,y_test)=keras.datasets.imdb.load_data(num_words=10000)#自动加载IMDB电影评价数据集
+            x_train=keras.preprocessing.sequence.pad_sequences(x_train,maxlen=80)#将句子填充、截断为等长80个单词的句子
+            x_train.shape
+        通过layers.Embedding层将数字编码的单词转换为长度为100的词向量
+            embedding=layers.Embedding(10000,100)
+            out=embedding(x_train)
+            out.shape
+    四维张量
+        大于四维的张量一般应用的比较少，如在元学习中会采用五维的张量表示方法。
+        四维张量在卷积神经网络中应用非常广泛，用于保存特征图数据，[b,h,w,c]
+            b表示输入样本的数量，h/w分别表示特征图的高/宽，c表示特征图的通道数，部分深度学习框架也会使用[b,c,h,w]格式的特征图张量，例如PyTorch。
+        神经网络中一般并行计算多个输入以提高计算效率，b张图片的张量[b,h,w,3]
+            x=tf.random.normal([4,32,32,3])#创建彩色图片输入
+            layers=layers.Conv2D(16,kernel_size=3)#创建卷积神经王路平
+            out=layers(x)
+            out.shape
+            layers.kernel.shape#此处环境搭建可能出现问题，需要安装zlib，并创建对应的环境变量
+
+### 4.6 索引与切片
+
+    通过索引和切片操作可以提取张量的部分数据，使用频率较高
+    索引
+        TF支持基本的[i][j]...标准索引形式，也支持通过逗号分隔索引号的索引方式。
+            [1][2][3]==[1,2,3]
+    切片
+        通过start:end:step切片方式可以提取一段数据，不含end，step默认为1
+            [1:3]==[1:3:1],[0,::]==[0]==[0,:],::可以简写为:
+        隔行隔列采样，相当于图片缩放
+            start:读取后续所有元素
+            :end读到end，不含end
+            ::step,::,:
+        start,end,step都可以为负数，实现逆序、快速框取
+        ...用以避免[:,:,:]过多冒号，...左边的维度自动对齐到左边，右边亦然
+
+### 4.7 维度变换
+
+    神经网络运算过程中，维度变换是最核心的张量操作，通过维度变换可以将数据任意地切换形式。
+    线性层的批量形式：Y=X@W+b
+    算法的每个模块对于数据张量的格式有不同的逻辑要求，当现有的数据格式不满足算法要求时，需要通过维度变换将数据调整为正确的格式。
+    维度变换操作函数包含了改变视图reshape、插入新维度expand_dims、删除维度squeeze、交换维度transpose、复制数据tile等函数
+    改变视图
+        张量的视图是理解张量形式的方式，张量的存储体现在张量在内存上保存为一段连续的内存区域。同一个存储，从不同的角度观察数据，可以产生不同的视图。
+            tf.reshape(x,[dims])返回维度变换后的结果，维度为-1时表示该轴长度根据张量总元素不变的法则自动推导
+        在存储数据时，内存不支持维度层级概念，只能以平铺方式按序写入内存
+        数据在创建时按照初始的维度顺序写入，改变张量的视图仅仅改变了张量的理解方式，并不需要改变张量的存储顺序。改变视图操作的默认前提是存储不需要改变，否则改变视图操作就是非法的。
+        从语法上说，视图变换只需要满足新视图的元素总量与存储区域大小相等，维度顺序和存储顺序不能冲突
+        正确使用视图变换，可以跟踪存储的维度顺序。
+        可以通过张量的ndim和shape成员属性获得张量的维度数和形状
+    增、删维度
+        增加维度：数据不需要改变，只是改变数据的理解方式，可以理解为改变视图的特殊方式
+            tf.expand_dims(x,axis)在指定的轴前插入新的维度，axis为正表示在当前维度前插入，为负表示之后，即0和-(n+1)插入位置相同，n为维度数
+        删除维度：增加维度的逆操作，
+            tf.squeeze(x,axis)，不指定维度，将会删除所有长度为1的维度
+    交换维度
+        有时需要直接调整的存储顺序，即交换维度，改变存储顺序和张量视图
+        tf.transpose(x,perm)，perm为维度顺序如[0,3,1,2]
+    复制数据
+        在指定维度上复制数据
+            tf.tile(x,multiples)，multiples分别指定了每个维度的复制倍数，如[2,1]将维度0复制到维度1
+        自动扩展也能实现插入维度和复制数据
+        tf.tile不会使维度发生变化，只是使维度长度变化，并且x必须大于一个维度
+        tf.tile会创建一个新的张量来保存复制后的张量，涉及大量数据的读写IO运算，计算代价较高
+
+### 4.8 Broadcasting
+
+    Broadcasting称为广播机制(或自动扩展机制)，一种轻量级的张量复制手段，在逻辑上扩展张量数据的形状，只会在需要时才执行实际存储复制操作。对于大部分场景，Broadcasting机制都能通过优化手段避免实际复制数据而完成逻辑运算。
+    对于所有长度为1的维度，和tf.tile一样，在此维度上逻辑复制数据若干份，在逻辑上改变张量的形状，使得视图上变成了复制后的形状。Broadcasting会通过深度学习框架的优化手段避免实际复制数据而完成逻辑运算。
+    不同shape的张量直接相加，就是自动调用Broadcasting函数tf.broadcast_to(x,new_shape)扩展为相同的shape，然后再调用tf.add完成张量相加运算
+    该机制并不会扰乱正常的计算逻辑，只会针对最常见的场景自动完成增加维度并复制数据的功能。核心思想是普适性，即一份数据能普遍适合于其他位置。将张量shape向右对齐，长度为1的维度，默认数据普遍适合于当前维度的其他位置；不存在的维度，增加新维度后默认当前数据也普适于新维度，可以扩展为更多维度数、任意长度的张量形状
+        tf.broadcast_to(x,new_shape)，显式执行自动扩展
+    +-*/等能够自动调用该机制
+
+### 4.9 数学运算
+
+    加减乘除运算
+        分别通过tf.add,tf.subtract,tf.multiply,tf.divide实现，TF已经重载了+-*/运算符
+        整除//，余除%
+    乘方运算
+        tf.pow(x,a)可以完成y=x^a的乘方运算，重载到x**a
+        指数为1/a则实现开a方根
+        平方tf.square(x)，平方根tf.sqrt(x)
+    指数和对数运算
+        tf.pow(a,x)或a**x
+        对于自然指数tf.exp(x)
+        自然对数log_e(x)，tf.math.log(x)实现，利用换底公式能够计算其他底数的对数
+    矩阵相乘运算
+        @或tf.matmul(a,b)，矩阵相乘可以使用批量方式，即A和B的维度数可以大于2，TF会选择A和B最后两个维度进行矩阵相乘。
+        A和B需要满足A最后一个维度长度于B倒数第二个维度长度相等
+        矩阵相乘函数同样支持自动Broadcasting机制
+
+### 4.10 前向传播实战
+
+    实现三层神经网络
+        out=ReLU{ReLU{ReLU[X@W1+b1]@W2+b2}@W3+b3}
+        
+        (x,y),(x_val,y_val)=datasets.mnist.load_data()#加载MNIST数据集
+        x=2*tf.convert_to_tensor(x,dtype=tf.float32)/255.-1#转化为浮点张量，并归一化
+        y=tf.convert_to_tensor(y,dtype=tf.int32)
+        train_dataset=tf.data.Dataset.from_tensor_slices((x,y))
+        train_dataset=train_dataset.batch(512)
+        lr=0.01
+        loss=1
+        # 每层的张量都需要被优化，故使用Variable 类型，并使用截断的正太分布初始化权值张量 
+        # 偏置向量初始化为0 即可 
+        # 第一层的参数 
+        w1 = tf.Variable(tf.random.truncated_normal([784, 256], stddev=0.1)) 
+        b1 = tf.Variable(tf.zeros([256])) 
+        # 第二层的参数 
+        w2 = tf.Variable(tf.random.truncated_normal([256, 128], stddev=0.1)) 
+        b2 = tf.Variable(tf.zeros([128])) 
+        # 第三层的参数 
+        w3 = tf.Variable(tf.random.truncated_normal([128, 10], stddev=0.1)) 
+        b3 = tf.Variable(tf.zeros([10]))
+        while loss>0.1:
+            with tf.GradientTape() as tape:
+                # 改变视图，[b, 28, 28] => [b, 28*28] 
+                x = tf.reshape(x, [-1, 28*28])
+                # 第一层计算，[b, 784]@[784, 256] + [256] => [b, 256] + [256] => [b, 256] + [b, 256] 
+                h1 = x@w1 + tf.broadcast_to(b1, [x.shape[0], 256]) 
+                h1 = tf.nn.relu(h1) # 通过激活函数
+                # 第二层计算，[b, 256] => [b, 128] 
+                h2 = h1@w2 + b2 
+                h2 = tf.nn.relu(h2) 
+                # 输出层计算，[b, 128] => [b, 10] 
+                out = h2@w3 + b3 
+                # 计算网络输出与标签之间的均方差，mse = mean(sum(y-out)^2) 
+                # [b, 10] 
+                y_onehot=tf.one_hot(y,depth=10)#ont hot编码
+                loss = tf.square(y_onehot - out) 
+                # 误差标量，mean: scalar 
+                loss = tf.reduce_mean(loss)
+                print(loss) 
+            # 自动梯度，需要求梯度的张量有[w1, b1, w2, b2, w3, b3] 
+            grads = tape.gradient(loss, [w1, b1, w2, b2, w3, b3])
+            # 梯度更新，assign_sub 将当前值减去参数值，原地更新 
+            w1.assign_sub(lr * grads[0]) 
+            b1.assign_sub(lr * grads[1]) 
+            w2.assign_sub(lr * grads[2]) 
+            b2.assign_sub(lr * grads[3]) 
+            w3.assign_sub(lr * grads[4]) 
+            b3.assign_sub(lr * grads[5])
+        # 改变视图，[b, 28, 28] => [b, 28*28] 
+        x=2*tf.convert_to_tensor(x_val,dtype=tf.float32)/255.-1#转化为浮点张量，并归一化
+        x = tf.reshape(x, [-1, 28*28])
+        y=tf.convert_to_tensor(y_val,dtype=tf.int32)
+        # 第一层计算，[b, 784]@[784, 256] + [256] => [b, 256] + [256] => [b, 256] + [b, 256] 
+        h1 = x@w1 + tf.broadcast_to(b1, [x.shape[0], 256]) 
+        h1 = tf.nn.relu(h1) # 通过激活函数
+        # 第二层计算，[b, 256] => [b, 128] 
+        h2 = h1@w2 + b2 
+        h2 = tf.nn.relu(h2) 
+        # 输出层计算，[b, 128] => [b, 10] 
+        out = h2@w3 + b3 
+        y=tf.one_hot(y_val,depth=10)
+        print(y.shape)
+        for i in range(y.shape[0]):
+            print(out[i].array(),y[i].array())
+
+## 五、TensorFlow进阶
+
+    人工智能将是谷歌的最终版本。它将称为终极搜索引擎，可以理解网络上的一切信息。它会准确地理解你想要什么，给你需要的东西。——拉里·佩奇
+
+### 5.1 合并与分割
+
+    合并
+        将多个张量在某个维度上合称为一个张量。
+        张量的合并可以使用拼接和堆叠操作实现，拼接操作并不会产生新的维度，仅在现有的维度上合并，而堆叠会创建新维度。
+        拼接：tf.concat(tensors,axis)，tensors保存了所有需要合并的张量List，axis参数指定需要合并的维度索引，不进行拼接的维度需要长度一致
+        堆叠：tf.stack(tensors,axis)，axis指定插入的位置，与tf.expand_dims用法一致
+        同样需要满足张量堆叠合并条件，否则出现InvalidArgumentError错误
+    分割
+        合并操作的逆过程，将一个张量拆分为多个
+            tf.split(x,num_or_size_splits,axis)
+                x为待分割张量，axis指定分割的维度索引
+                num_or_size_splits为切割方案，为单个数值时表示等长切割，为List表示切割成对应份数和长度
+            tf.unstack(x,axis)，能够在某个维度上全部分割为1
+
+### 5.2 数据统计
+
+    向量范数
+        L1范数，向量x的所有元素绝对值之和
+        L2范数，向量x的所有元素的平方和
+        ∞-范数，向量x的所有元素绝对值的最大值
+        矩阵和张量可以先打平成向量后再计算
+            tf.norm(x,ord)，ord=1计算L1，=2计算L2，=np.inf计算∞
+    最值、均值、和
+        通过tf.reduce_max、tf.reduce_min、tf.reduce_mean、tf.reduce_sum函数可以求解张量在某个维度上或全局的最大、最小、均值、和
+        不指定axis参数时，tf.reduce_*会求出全局元素的最大、最小、均值、和等数据
+            tf.nn.softmax(x,axis)能够转化为概率值，可应用与求解最大值的索引号
+            tf.argmax(x,axis)和tf.argmin(x,axis)可以求解在axis轴上，x的最大值、最小值所在的索引号
+
+### 5.3 张量比较
+
+    tf.equal(x,y)，相同维度和长度的张量比较，返回比尔类型
+    tf.math.greater()
+    tf.math.less()
+    tf.math.greater_equal()
+    tf.math.less_equal()
+    tf.math.not_equal()
+    tf.math.is_nan()
+
+### 5.4 填充与复制
+
+    填充
+        对于图片数据的高和宽、序列信号的长度，维度长度可能各不相同。为了方便网络的并行计算，需要将不同长度的数据扩张为相同长度。重复复制数据会破坏原有的数据结构，在需要补充长度的数据开始或结束处填充足够数量的特定数值，一般代表无效意义，
+            tf.pad(x,padding)，padding包含多个[left padding,right padding]的嵌套方案List，如[[0,2],[1,1]]表示第一个维度左侧不加、右侧加2，第二个维度左侧右侧加1
+        对于IMDB数据集的处理
+            x_train = keras.preprocessing.sequence.pad_sequences(x_train, 
+maxlen=max_review_len,truncating='post',padding='post')
+            设定了末尾填充和末尾截断方式
+    复制
+        tf.tile可以在任意维度将数据重复复制多份
+
+### 5.5 数据限幅
+
+    实现非线性激活函数ReLU，可以通过简单的数据限幅来实现，限制元素的范围在x[0,+∞)
+        tf.maximum(x,a)实现数据的下限幅，tf.minimum(x,a)实现数据的上限幅
+        tf.clip_by_value(x,min,max)同时实现上下限幅
+
+### 5.6 高级操作
+
+    tf.gather
+        实现根据索引号收集数据
+            tf.gather(x,[range],axis)在axis维度收集range范围的数据
+        也可以通过切片实现，但gather能够对离散范围进行取样，适合索引号没有规则，索引号可以乱序排列
+        可以手动提取数据，然后利用stack合并
+    tf.gather_nd
+        通过指定每次采样点的多维坐标来实现采样多个点的目的。
+            tf.gather_nd([points])，如([[1,1],[2,2],[3,3]])
+    tf.boolean_mask
+        掩码采样
+            tf.boolean_mask(x,mask=[...],axis)，掩码长度必须与对应维度的长度一样，如[True,False]或[[True,False],[True,False]]
+    tf.where
+        根据条件的真假从参数A或B中读取数据
+            tf.where(cond,a,b),cond为真取a，cond为假取b
+            不加ab时，返回cond中为True的元素索引
+        可以用于提取张量中满足条件的数据和索引
+    scatter_nd
+        高效地刷新张量的部分数据，但只能在全0的白板张量上执行
+            tf.scatter_nd(indices,updates,shape)，indices为updates中数据对应的插入位置
+    meshgrid
+        生成二维网格的采样点坐标
+            tf.meshgrid(x,y)
+        返回在axis=2维度切割后的两个张量A和B，分别对应x坐标和y坐标
+        通过matplotlib库可绘制出3D曲面
+
+### 5.7 经典数据集加载
+
+    keras.datasets模块提供了常用经典数据集的自动下载、管理、加载与转换功能，并并且提供了tf.data.Dataset数据集对象，方便实现多线程、预处理、随机打散和批训练等常用数据集的功能
+        Boston Housing，波士顿房价趋势数据集，用于回归模型训练与测试
+        CIFAR10/100，真实图片数据集，用于图片分类任务
+        MNIST/Fashion_MNIST，手写数字图片数据集，用于图片分类任务
+        IMDB，情感分类任务数据集，用于文本分类任务
+    对于新提出的算法，一般优先在经典的数据集上面测试，再尝试迁移到更大规模、更复杂的数据集上
+        通过datasets.xxx.load_data()函数即可实现经典数据集的自动加载。TensorFlow会默认将数据缓存在用户目录下的.keras/datasets文件夹。如果数据集不在缓存中，会自动从网络下载、解压和加载数据集。所有的数据都用NUmpy数组容器保存
+        数据加载进入内存后，需要转换为Dataset对象，才能利用TF。通过Dataset.from_tensor_slices将训练部分的数据图片x和标签y都转换成Dataset对象
+            tf.data.Dataset.from_tensor_slices((x,y))
+    随机打散
+        设置Dataset对象随机打散数据之间的顺序，防止每次训练时数据按固定顺序产生，从而使得模型尝试"记忆"住标签信息
+            train_db.shuffle(buffer_size)，不会打乱样本与标签之间的关系
+    批训练
+        为了利用显卡的并行计算能力，一般在网络的计算过程中会同时计算多个样本。
+        一个批样本中的数量称为Batch Size。
+            db.batch(batch_size)
+            batch size一般根据用户的GPU现存资源来设置。
+    预处理
+        从keras.datasets中加载的数据集的格式大部分情况下不能直接满足模型的输入要求，需要根据用户的逻辑自行实现预处理步骤。Dataset对象通过提供map(func)工具函数，可以调用用户自定义的预处理逻辑。
+            train_db.map(preprocess)
+        对于MNIST图片数据，可以这样预处理
+            def preprocess(x, y): # 自定义的预处理函数 
+            # 调用此函数时会自动传入x,y 对象，shape 为[b, 28, 28], [b]  
+                # 标准化到0~1 
+                x = tf.cast(x, dtype=tf.float32) / 255. 
+                x = tf.reshape(x, [-1, 28*28])     # 打平 
+                y = tf.cast(y, dtype=tf.int32)    # 转成整型张量 
+                y = tf.one_hot(y, depth=10)    # one-hot 编码 
+                # 返回的x,y 将替换传入的x,y 参数，从而实现数据的预处理功能 
+                return x,y
+    循环训练
+        对于Dataset对象，可以通过
+            for step,(x,y) in enumerate(train_db):
+        或  for x,y in train_db
+        每次x和y对象为批量样本和标签
+        通过多个step来完成整个训练集的一次迭代，称为一个Epoch。在实际训练时，通常需要对数据集迭代多个Epoch才能取得较好的训练效果
+            for epoch in range(20):
+                ...
+
+### 5.8 MNIST测试实战
+
+    def preprocess(x, y): # 自定义的预处理函数 
+    # 调用此函数时会自动传入x,y 对象，shape 为[b, 28, 28], [b]  
+        # 标准化到0~1 
+        x = tf.cast(x, dtype=tf.float32) / 255. 
+        x = tf.reshape(x, [-1, 28*28])     # 打平 
+        y = tf.cast(y, dtype=tf.int32)    # 转成整型张量 
+        y = tf.one_hot(y, depth=10)    # one-hot 编码 
+        # 返回的x,y 将替换传入的x,y 参数，从而实现数据的预处理功能 
+        return x,y 
+
+    batch_size=128
+    (x_tra,y_tra),(x_val,y_val)=datasets.mnist.load_data()#加载MNIST数据集
+    train_db=tf.data.Dataset.from_tensor_slices((x_tra,y_tra))
+    test_db=tf.data.Dataset.from_tensor_slices((x_val,y_val))
+    train_db=train_db.shuffle(10000)
+    train_db=train_db.batch(batch_size)
+    test_db=test_db.batch(batch_size)
+    train_db = train_db.map(preprocess)
+    test_db = test_db.map(preprocess)
+
+    lr=0.01
+    loss=1
+    # 每层的张量都需要被优化，故使用Variable 类型，并使用截断的正太分布初始化权值张量 
+    # 偏置向量初始化为0 即可 
+    # 第一层的参数 
+    w1 = tf.Variable(tf.random.truncated_normal([784, 256], stddev=0.1)) 
+    b1 = tf.Variable(tf.zeros([256])) 
+    # 第二层的参数 
+    w2 = tf.Variable(tf.random.truncated_normal([256, 128], stddev=0.1)) 
+    b2 = tf.Variable(tf.zeros([128])) 
+    # 第三层的参数 
+    w3 = tf.Variable(tf.random.truncated_normal([128, 10], stddev=0.1)) 
+    b3 = tf.Variable(tf.zeros([10]))
+    for epoch in range(20): # 训练Epoch 数 
+        for step, (x,y) in enumerate(train_db): # 迭代Step 数
+            with tf.GradientTape() as tape:
+                # 第一层计算，[b, 784]@[784, 256] + [256] => [b, 256] + [256] => [b, 256] + [b, 256] 
+                h1 = x@w1 + b1 
+                h1 = tf.nn.relu(h1) # 通过激活函数
+                # 第二层计算，[b, 256] => [b, 128] 
+                h2 = h1@w2 + b2 
+                h2 = tf.nn.relu(h2) 
+                # 输出层计算，[b, 128] => [b, 10] 
+                out = h2@w3 + b3 
+                # 计算网络输出与标签之间的均方差，mse = mean(sum(y-out)^2) 
+                loss = tf.square(y - out) 
+                # 误差标量，mean: scalar 
+                loss = tf.reduce_mean(loss)
+            if step % 100 == 0: 
+                print(step, 'loss:', float(loss))
+            # 自动梯度，需要求梯度的张量有[w1, b1, w2, b2, w3, b3] 
+            grads = tape.gradient(loss, [w1, b1, w2, b2, w3, b3])
+            # 梯度更新，assign_sub 将当前值减去参数值，原地更新 
+            w1.assign_sub(lr * grads[0]) 
+            b1.assign_sub(lr * grads[1]) 
+            w2.assign_sub(lr * grads[2]) 
+            b2.assign_sub(lr * grads[3]) 
+            w3.assign_sub(lr * grads[4]) 
+            b3.assign_sub(lr * grads[5])
+            if step % 500 == 0:
+                total_correct=0
+                total=0
+                for x, y in test_db: # 对测验集迭代一遍  
+                    h1 = x @ w1 + b1 # 第一层 
+                    h1 = tf.nn.relu(h1) # 激活函数 
+                    h2 = h1 @ w2 + b2 # 第二层 
+                    h2 = tf.nn.relu(h2) # 激活函数 
+                    out = h2 @ w3 + b3 # 输出层
+                    pred = tf.argmax(out, axis=1) # 选取概率最大的类别
+                    y = tf.argmax(y, axis=1) # one-hot 编码逆过程
+                    correct = tf.equal(pred, y) # 比较预测值与真实值
+                    total_correct += tf.reduce_sum(tf.cast(correct, dtype=tf.int32)).numpy() # 统计预测正确的样本个数
+                    total+=batch_size
+                print(step, 'Evaluate Acc:%.4f'%(total_correct/total)) 
+
+    代码中需要注意，训练和测试集都需要进行预处理、分批。所以测试机需要逆onehot
+    可以增加数据增强环节、精调网络超参数等技巧，获得更高的模型性能
+
+## 六、神经网络
+
+    很难想象哪一个大行业不会被人工智能改变。人工智能会在这些行业里发挥重大作用，这个走向非常明显。——吴恩达
+    机器学习的最终目的是找到一组良好的参数θ，使得θ表示的数学模型能够很好地从训练集中学到映射关系f_θ:x→y,x,y∈D^{train}。神经网络属于机器学习的一个研究分支，特指利用多个神经元去参数化映射函数f_θ的模型
+
+### 6.1 感知机
+
+    感知机模型，接受长度为m的一维向量x=[x1,x2,...,xn]，每个输入节点通过权值为wi,i∈[1,n]的连接汇集为变量z，并加上常数偏置b，z称为感知机的净活性值
+    感知机为线性模型，不能处理线性不可分问题。通过在线性模型后添加激活函数后得到活性值a=σ(z)，激活函数可以是阶跃函数、符号函数
+    添加激活函数后，感知机可以完成二分类任务。阶跃函数和符号函数在z=0处不连续，其他位置导数为0，无法利用梯度下降算法进行参数优化。
+    感知训练算法
+        初始化参数w=0，b=0
+        repeat
+            从训练集随机采集一个样本(xi,yi)
+            计算感知机的输出a=sign(W^Txi+b)
+            如果a≠yi:
+                w'=w+η·yi·xi //η为学习率
+                b'=b+η·yi
+        until 训练次数达到要求
+        输出：分类网络参数w和b
+        感知据不能解决异或等线性不可分问题，但是可以通过嵌套多层神经网络解决
+
+### 6.2 全连接层
+
+    现代深度学习的核心结构与感知机并没有多大差别。它在感知机的基础上，将不连续的阶跃激活函数换成了其他平滑连续可导的激活函数，并通过堆叠多个网络层来增强网络的表达能力
+    通过替换感知机的激活函数，同时并行堆叠多个神经元来实现多输入、多输出的网络层结构。
+        O=X@W+b
+    每个输出节点与全部的输入节点相连接，称为全连接层，或稠密连接层，W矩阵称为全连接层的权值矩阵，b向量为全连接层的偏置向量
+    张量方式实现
+        要实现全连接层，只需要定义好权值张量W和偏置张量b，并利用批量矩阵相乘函数tf.matmul()即可
+    层方式实现
+        全连接层本质上是矩阵的相乘和相加运算。作为最常用的网络层之一，TF有更高层、使用更方便的层实现方式
+            layers.Dense(unit,activation)
+        通过layer.Dense类，只需要指定输出节点数Units和激活函数类型activation。输入节点数会根据第一次运算时的输入shape确定，同时根据输入、输出节点数自动创建并初始化权值张量W和偏置张量b，因此在新建类Dense实例时，并不会立即创建张量W和偏置张量b，而是需要调用build函数或者直接进行一次前向计算，才能完成网络参数的创建。activation参数指定当前层的激活函数，可以为常见的激活函数或自定义激活函数，也可以指定为None
+            # 创建全连接层，指定输出节点数和激活函数 
+            fc = layers.Dense(512, activation=tf.nn.relu)  
+            h1 = fc(x)  # 通过fc 类实例完成一次全连接层的计算，返回输出张量
+        可以通过类内部的成员名kernel和bias来获取权值张量W和偏置张量b对象
+        fc.trainable_variables可以获得网络的所有待优化的张量参数列表
+        网络层除了保存待优化张量列表trainable_variables，还有部分层包含了不参与梯度优化的张量，例如Batch Normalization层，通过non_trainable_variables成员返回所有不需要优化的参数列表。variables成员返回所有内部张量列表，对于全连接层，内部张量都参与梯度优化。
+        利用网络层类对象进行前向计算，只需要调用类的__call__方法，fc(x)会自动调用类的__call__方法，在__call__方法中会自动调用call方法。对于全连接层类，在call方法中实现σ(X@W+b)的运算逻辑。
+
+### 6.3 神经网络
+
+    通过层层堆叠全连接层，保证前一层的输出节点数与当前层的输入节点数匹配，即可堆叠出任意层数的网络，将由神经元相互连接而成的网络称为神经网络，每层均为全连接层的称为全连接网络。输入和输出层之间的层之间的层称为隐藏层，输出层不计入总层数。
+    设计全连接网络时，网络的结构配置等超参数可以按照经验法则自由设置，只需要遵循少量的约束。例如，隐藏层1的输入节点数与数据的实际特征长度匹配，每层的输入层节点数与上一层输出节点数匹配，输出层的激活函数和节点数需要根据任务的具体设定进行设计。结构设计自由度较大，最优超参数需要领域经验知识和实验尝试，或者可以通过AutoML技术搜索出较优设定
+    张量方式实现
+        对于多层神经网络，需要分别定义各层的权值W和偏置向量b，还需要根据全连接层数目定义W和b，并且需要防止混淆
+        计算时只需要按照网络层顺序进行输入输出。
+        在使用TF自动求导功能计算梯度时，需要将前向计算过程放置在tf.GradientTape()环境中，从而利用GradientTape对象的gradient()方法自动求解参数的梯度，并利用optimizers对象更新参数
+    层方式实现
+        对于常规网络层，通过层方式实现起来更加简洁高效。建立各个网络层类，并指定各层的激活函数类型后，在前向计算时，依序通过各个网络层即可。
+        对于数据依次向前传播的网络，也可以通过Sequential容器封装成一个网络大类对象，调用大类的前向计算函数一次即可完成所有层的前向计算
+            from tensorflow.keras import layers,Sequential 
+            #  通过Sequential 容器封装为一个网络类 
+            model = Sequential([ 
+                layers.Dense(256, activation=tf.nn.relu) , # 创建隐藏层1 
+                layers.Dense(128, activation=tf.nn.relu) , # 创建隐藏层2 
+                layers.Dense(64, activation=tf.nn.relu) , # 创建隐藏层3 
+                layers.Dense(10, activation=None) , # 创建输出层 
+            ])
+            out = model(x) #  前向计算得到输出
+    优化目标
+        把神经网络从输入到输出的计算过程称为前向传播或前向计算。神经网络的前向传播过程，也是数据张量(Tensor)从第一层流动(Flow)到输出层的过程。
+        前向传播的最后一个就是完成误差的计算
+            L=g(f_θ(x),y),f_θ(·)代表θ参数化的神经网络模型，g(·)称为误差函数，可以是均方差误差函数。L为网络误差，一般为标量，目标是使L最小
+        最小化优化问题一般采用误差反向传播(Backward Propagation,BP)算法来求解网络参数θ的梯度信息，并利用梯度下降(Gradient Descent,GD)算法迭代更新参数
+            θ'=θ-η·▽_ΘL
+        神经网络也可以理解成完成特征的维度变换的功能，得到的特征一般包含了任务强相关的高层抽象特征信息，通过对这些特征进行简单的逻辑判定即可完成特定的任务
+        网络的参数量是衡量网络规模的重要指标，权值矩阵W=din·dout，偏置向量b=dout
+
+### 6.4 激活函数
+
+    神经网络中常见激活函数，都是平滑可导的
+    Sigmoid
+        也成为Logistic函数，Sigmoid(x)=1/(1+e^(-x))
+        能够把实数输入压缩到(0,1)区间，该区间在机器学习中表示
+            概率分布(0,1)区间的输出和概率的分布范围[0,1]契合，可以通过Sigmoid函数将输出转译为概率输出
+            信号强度，可以将0~1理解为某种信号的强度，例如颜色、门控值
+        tf.nn.sigmoid(x)实现函数
+    ReLU
+        Sigmoid在输入值较大或较小时容易出现梯度值接近于0的现象，称为梯度弥散，使得网络参数长时间得不到更i性能，导致训练不收敛或停滞不动，较深层次的网络模型更容易出现。
+        ReLU(REctified Linear Unit,线性修正单元)，使得网络层数达到8层
+            ReLU(x)=max(0,x)
+        单边抑制特性，与脑神经元激活模型类似
+        tf.nn.relu(x)实现函数
+        除了使用函数接口，还可以像Dense层一样将ReLU函数作为一个网络层添加到网络中，对应layers.ReLU()类，激活函数类不计入网络层数。
+    LeakyReLU
+        ReLU函数在x<0时导数恒为0，也可能造成梯度弥散。
+            LeakyReLU=x(x≥0)    px(x<0),p较小
+        tf.nn.Leaky_relu(x,alpha)
+        对应类为layers.LeakyReLU，可以通过LeakyReLU(alpha)创建网络层
+    Tanh
+        Tanh能够将实数输入压缩到(-1,1)
+            tanh(x)=(e^x-e^(-x))/(e^x+e^(-x))=2·sigmoid(2x)-1
+        tf.nn.tanh(x)实现函数
+
+### 6.5 输出层设计
+
+    输出层除了与隐藏层一样，完成维度变换、特征提取的功能，还作为输出层，根据具体任务场景决定使用激活函数
+    根据输出值的区间范围来分类讨论
+        输出属于整个实数空间，或某段普通实数空间，如函数值趋势、年龄的预测
+        输出值特别地落在[0,1]区间，如图片生成、二分类
+        输出值在[0,1]区间，且总和为1，如多分类
+        输出值在[-1,1]
+    普通实数空间
+        如正弦函数曲线预测、年龄预测、股票走势预测等都属于整个或部分连续的实数空间，输出层可以不加激活函数。误差的计算直接基于最后一层的输出o和真实值y进行计算
+    [0,1]区间
+        在机器学习中，一般会将图片的像素值归一化到[0,1]区间，可以使用Sigmoid函数
+        二分类问题可以在输出层只设置一个节点，或者可以分别预测A和非A，并满足概率和为1
+    [0,1]区间，和为1
+        可以使用Softmax(zi)=e^(zi)/Σe^(zj),j∈[1,dout]
+        tf.nn.softmax(z)实现函数，通过layers.Softmax(axis=-1)添加，axis指定需要进行计算的维度
+        在Softmax函数的数值计算过程中，容易因输入值偏大发生数值溢出现象，在计算交叉熵时，也会出现数值溢出。为了数值计算稳定性，TF提供了统一接口，将Softmax和交叉熵损失函数同时实现，同时处理了数值不稳定的异常，一般推荐使用这些接口函数
+            tf.keras.losses.categorical_crossentropy(y_true,y_pred,from_logits=False)
+                y_true为One-hot编码后的真实标签，y_pred表示网络预测值
+                from_logits为True，y_pred表示未经过Softmax函数的变量z
+                from_logits为False，y_pred表示经过Softmax函数的输出
+            一般将from_logits设置为True，该接口函数将在内部进行Softmax计算
+        同样能够用keras.losses.CategoricalCrossentropy(from_logits)同时实现Softmax与交叉熵损失函数的计算
+    [-1,1]
+        可以使用tanh激活函数
+
+### 6.6 误差计算
+
+    常见的误差函数有均方差、交叉熵、KL散度、Hinge Loss函数，均方差和交叉熵在深度学习中比较常见，前者用于回归，后者用于分类
+    均方差误差函数
+        均方差(Mean Squared Error,MSE) 误差函数把输出向量和真实向量映射到笛卡尔坐标系的两个点上，计算二者欧氏距离的平方，MSE误差函数值总是≥0，=0时达到最优
+        分类问题也可应用均方误差函数。
+        函数方式实现：keras.losses.MES(y_onehot,o)，需要再次平均得到平均样本均方差，tf.reduce_mean(loss)
+        层方式实现：keras.losses.MeanSquaredError()，调用__call__函数即可
+            criteon(y_onehot,x)
+    交叉熵误差函数
+        熵越大，不确定性越大，信息量越大，onehot编码的熵为0
+            H(P)=-ΣP(i)log_2P(i)
+        用tf.math.log来计算熵
+        交叉熵：H(p||q)=-Σp(i)log_2q(i)，可以分解为p的熵加上p与q的KL散度
+            D_KL(p||q)=Σp(i)log(p(i)/q(i))
+        交叉熵和KL散度都不对称，如果p采用onehot编码，二者相等且
+            H(p||q)=D_KL(p||q)=-logo_i
+        最小化交叉熵损失函数的过程也是最大化正确类别的预测概率的过程
+
+### 6.7 神经网络类型
+
+    全连接层是神经网络最基本的网络类型，最大的缺陷是在处理较大特征长度的数据时，参数量较大，使得深层次的全连接网络参数量巨大，训练较为困难。
+    卷积神经网络
+        通过利用局部相关性和权值共享的思想，得到卷积神经网络，在计算机视觉中呈现统治态势。比较流行的模型有图片分类的AlexNet、VGG、GoogleNet、ResNet、DenseNet等，用于目标识别的RCNN、Fast RCNN、Faster RCNN、Mask RCNN、YOLO、SSD等
+    循环神经网络
+        除了具有空间结构的图片、视频等数据外，序列信号也是非常常见的一种数据类型，例如文本数据。卷积神经网络缺乏Memory机制和处理不定长序列信号的能力。循环神经网络(Recurrent Neural Network,RNN)擅长处理序列信号。LSTM是RNN的变种，克服了RNN缺乏长期记忆、不擅长处理长序列的问题。Google基于LSTM提出用于机器翻译的Seq2Seq模型，并商用与谷歌神经机器翻译系统GNMT。其他变种还有GRU、双向RNN等
+    注意力(机制)网络
+        注意力机制的提出，克服了RNN训练不稳定、难以并行化等缺陷。Google提出了第一个利用纯注意力机制实现的网络模型Transformer，随后提出了GPT、BERT、GPT-2。自注意力机制有BigGAN模型等
+    图卷积神经网络
+        图片、文本等数据具有规则的空间、时间结构，称为欧式数据。对于社交网络、通信网络、蛋白质分子结构等一系列的不规则空间拓扑结构的数据，图卷积网络(Graph Convolution Network,GCN)模型，在半监督任务上取得不错效果。后续的有GAT,EdgeConv,DeepGCN等
+
+### 6.8 汽车油耗预测实战
+
+    数据集
+        采用Auto MPG数据集，需要从UCI服务器下载并读取到DataFrame对象中。并且对于原始表格中的数据可能含有空字段(缺失值)的数据项，需要进行清除
+        对于一些无关字段，可以进行移除转换
+        对数据集进行8:2切分训练集和测试集，并将关键字段抽出作为标签数据
+        统计训练集各个字段数值的均值和标准差，完成数据的标准化，通过norm()函数实现。最后利用切分的数据集结构构建数据集对象
+    创建网络
+        将网络实现为一个自定义网络类，在初始化函数中创建各个子网络层，在前向计算函数中call中实现自定义网络类的计算逻辑。自定义网络类继承自keras.Model基类，是自定义网络类的标准写法，以便利用trainable_variables,save_weights等
+    训练与测试
+        实例化网络对象并创建优化器
+        网络训练部分通过Epoch和Step组成双层循环训练网络
+        对于回归问题，可以使用MSE均方差和MAE平均绝对误差
+        如果训练效果随着Epoch变化不显著，可以提前结束训练。
+    # 在线下载汽车效能数据集 
+    dataset_path = keras.utils.get_file("auto-mpg.data", 
+    "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data") 
+    # 利用pandas 读取数据集，字段有效能（公里数每加仑），气缸数，排量，马力，重量
+    # 加速度，型号年份，产地 
+    column_names = ['MPG','Cylinders','Displacement','Horsepower','Weight', 
+                    'Acceleration', 'Model Year', 'Origin'] 
+    raw_dataset = pd.read_csv(dataset_path, names=column_names, 
+                        na_values = "?", comment='\t', 
+                        sep=" ", skipinitialspace=True) 
+    dataset = raw_dataset.copy() 
+    # 查看部分数据 
+    # dataset.head()
+    dataset.isna().sum() # 统计空白数据 
+    dataset = dataset.dropna() # 删除空白数据项 
+    dataset.isna().sum() # 再次统计空白数据
+    # 处理类别型数据，其中origin 列代表了类别1,2,3,分布代表产地：美国、欧洲、日本 
+    # 先弹出(删除并返回)origin 这一列 
+    origin = dataset.pop('Origin') 
+    # 根据origin 列来写入新的3 个列 
+    dataset['USA'] = (origin == 1)*1.0 
+    dataset['Europe'] = (origin == 2)*1.0 
+    dataset['Japan'] = (origin == 3)*1.0 
+    # dataset.tail() # 查看新表格的后几项
+    #切分为训练集和测试集 
+    train_dataset = dataset.sample(frac=0.8,random_state=0) 
+    test_dataset = dataset.drop(train_dataset.index) 
+    # 移动MPG 油耗效能这一列为真实标签Y 
+    train_labels = train_dataset.pop('MPG') 
+    test_labels = test_dataset.pop('MPG')
+    # 查看训练集的输入X 的统计数据 
+    train_stats = train_dataset.describe() 
+    # train_stats.pop("MPG") # 仅保留输入X 
+    train_stats = train_stats.transpose() # 转置 
+    # 标准化数据 
+    def norm(x): # 减去每个字段的均值，并除以标准差 
+        return (x - train_stats['mean']) / train_stats['std'] 
+    normed_train_data = norm(train_dataset) # 标准化训练集 
+    normed_test_data = norm(test_dataset) # 标准化测试集
+    print(normed_train_data.shape,train_labels.shape) 
+    print(normed_test_data.shape, test_labels.shape) 
+    train_db = tf.data.Dataset.from_tensor_slices((normed_train_data.values, 
+    train_labels.values)) # 构建Dataset 对象 
+    train_db = train_db.shuffle(100).batch(32) # 随机打散，批量化
+    class Network(keras.Model): 
+        # 回归网络模型 
+        def __init__(self): 
+            super(Network, self).__init__() 
+            # 创建3 个全连接层 
+            self.fc1 = layers.Dense(64, activation='relu') 
+            self.fc2 = layers.Dense(64, activation='relu') 
+            self.fc3 = layers.Dense(1) 
+    
+        def call(self, inputs, training=None, mask=None): 
+            # 依次通过3 个全连接层 
+            x = self.fc1(inputs) 
+            x = self.fc2(x) 
+            x = self.fc3(x) 
+            return x
+    model = Network() # 创建网络类实例 
+    # 通过build 函数完成内部张量的创建，其中4 为任意设置的batch 数量，9 为输入特征长度 
+    model.build(input_shape=(4, 9))  
+    model.summary() # 打印网络信息 
+    optimizer = tf.keras.optimizers.RMSprop(0.0002) # 创建优化器，指定学习率
+
+    for epoch in range(200): # 200 个Epoch 
+        for step, (x,y) in enumerate(train_db): # 遍历一次训练集 
+            # 梯度记录器，训练时需要使用它 
+            with tf.GradientTape() as tape: 
+                out = model(x) # 通过网络获得输出 
+                loss = tf.reduce_mean(losses.MSE(y, out)) # 计算MSE 
+                mae_loss = tf.reduce_mean(losses.MAE(y, out)) # 计算MAE 
+    
+            if step % 10 == 0: # 间隔性地打印训练误差 
+                print(epoch, step, float(loss)) 
+            # 计算梯度，并更新 
+            grads = tape.gradient(loss, model.trainable_variables) 
+            optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+## 七、反向传播算法
+
+    回首得越久，你会看得越远。——温斯顿·丘吉尔
+    误差反向传播算法(Backpropagation,BP)是神经网络中的核心算法之一。
+
+### 7.1 导数与梯度
+
+    

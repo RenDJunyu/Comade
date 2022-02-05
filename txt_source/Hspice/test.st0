@@ -1,0 +1,58 @@
+***** HSPICE -- F-2011.09 32-BIT (Sep  5 2011) winnt ******
+ Input File: test.sp
+ lic:
+ lic: FLEXlm: v10.8
+ lic: USER:   86184                HOSTNAME: PC2line
+ lic: HOSTID: "e86a64c8f38a 00ff97c2fd8f 00155d5a0a25 00fff9e0e6f8 485f9955e58d
+ lic: Using FLEXlm license file:
+ lic: D:\Matlab\licenses\license_PC2line_40623085_R2019b.lic
+ lic: Checkout 1 hspice
+ lic: License/Maintenance for hspice will expire on 31-dec-2030/2030.12
+ lic: NODE LOCKED license on hostid "e86a64c8f38a 00ff97c2fd8f 00155d5a0a25 00ff
+ lic:
+ init: begin read circuit files,  cpu clock=  9.20E-01
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\AD\
+       option search   = D:\HSPICE\hspice\PARTS\XILINX\
+       option search   = D:\HSPICE\hspice\PARTS\TLINE\
+       option search   = D:\HSPICE\hspice\PARTS\TI\
+       option search   = D:\HSPICE\hspice\PARTS\SIGNET\
+       option search   = D:\HSPICE\hspice\PARTS\PCI\
+       option search   = D:\HSPICE\hspice\PARTS\LIN_TECH\
+       option search   = D:\HSPICE\hspice\PARTS\FET\
+       option search   = D:\HSPICE\hspice\PARTS\DIO\
+       option search   = D:\HSPICE\hspice\PARTS\COMLINE\
+       option search   = D:\HSPICE\hspice\PARTS\BURR_BRN\
+       option search   = D:\HSPICE\hspice\PARTS\BJT\
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\AD\
+       option post     =     2.00
+       option runlvl
+       option post
+       option accura
+       option probe
+ init: end read circuit files,  cpu clock=  9.80E-01 memory=    150 kb
+ init: begin check errors,  cpu clock=  9.80E-01
+ init: end check errors,  cpu clock=  9.99E-01 memory=    150 kb
+ init: begin setup matrix, pivot=     0 cpu clock=  9.99E-01
+       establish matrix -- done,  cpu clock=  1.01E+00 memory=    152 kb
+       re-order matrix -- done,  cpu clock=  1.01E+00 memory=    153 kb
+ init: end setup matrix,  cpu clock=  1.02E+00 memory=    164 kb
+ dcop: begin dcop,  cpu clock=  1.02E+00
+ dcop: end dcop,  cpu clock=  1.03E+00 memory=    164 kb  tot_iter=       7
+ output: test.tr0
+ sweep: tran tran0    begin, stop_t=  1.00E-02 #sweeps=**** cpu clock=  1.04E+00
+ tran: time= 1.4192E-03 tot_iter=      30 conv_iter=      15 cpu clock= 1.05E+00
+ tran: time= 2.4192E-03 tot_iter=      34 conv_iter=      17 cpu clock= 1.07E+00
+ tran: time= 3.4192E-03 tot_iter=      38 conv_iter=      19 cpu clock= 1.08E+00
+ tran: time= 4.4192E-03 tot_iter=      42 conv_iter=      21 cpu clock= 1.09E+00
+ tran: time= 5.4192E-03 tot_iter=      46 conv_iter=      23 cpu clock= 1.10E+00
+ tran: time= 6.4192E-03 tot_iter=      50 conv_iter=      25 cpu clock= 1.11E+00
+ tran: time= 7.4192E-03 tot_iter=      54 conv_iter=      27 cpu clock= 1.13E+00
+ tran: time= 8.4192E-03 tot_iter=      58 conv_iter=      29 cpu clock= 1.14E+00
+ tran: time= 9.4192E-03 tot_iter=      62 conv_iter=      31 cpu clock= 1.15E+00
+ tran: time= 1.0000E-02 tot_iter=      66 conv_iter=      33 cpu clock= 1.16E+00
+ sweep: tran tran0    end,  cpu clock=  1.16E+00 memory=    164 kb
+>info:         ***** hspice job concluded
+ lic: Release hspice token(s)

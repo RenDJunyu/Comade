@@ -1,0 +1,78 @@
+git config --global user.name "name"配置用户名
+git config --global user.email email@ex.com/config配置邮箱
+git init初始化暂存区
+touch name生成
+git add添加 .所有 注意甄别不添加的使用.gitignore
+git status
+git rm --cached仅从暂存区删除 .r删除暂存区内容 -f删除未更新的
+git rm从暂存区与工作目录删除
+git rm $(git ls-files --deleted)删除所有被跟踪，但是在工作目录被删除的文件
+git commit -m 'initial commit' -m给出提示
+git commit -a -m 'full commit' -a避免先add再commit
+git log --oneline 更复杂 
+git log --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset
+     %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+git config alias.shortname "fullcommand"将长串设置别名,也可以设置为--global
+git diff 工作目录与暂存区的差异
+git diff --cached，暂存区与某次提交差异，默认为HEAD，即最新
+git diff <reference>工作目录与某次提交的差异
+git diff id1 id2，查看某两次提交差异(id为commit 版本号)
+git checkout --<file> 将文件内容从暂存区复制到工作目录可以用.
+git reset HEAD <file> 将文件内容从上次提交复制到暂存区
+git checkout HEAD --<file> 将内容从上次提交复制到工作目录
+git branch <branchname> 新建分支
+git branch -d <branchname> 删除指定分支
+git branch -v 显示所有分支信息
+git branch next 在当前位置新建分支
+git checkout <branchname> 进行分支切换
+    可以直接切换到commit id
+        但是可能造成detached head,导致提交无效而被回收
+git checkout -b <branchname> 新建分支并直接切换
+git checkout - 回到上一个分支
+git reset --mixed <commit id> (默认)回退并复制到暂存区
+git reset --soft <commit>回退但不复制
+git reset --hard <commit>回退复制到暂存区和工作目录
+    以上都会删除前面的提交指针
+git reflog 将之前经过的所有commit路径按序排列
+    需要尽快，不断向前，信息可能丢失
+使用捷径
+    A^:A上的父提交
+    A~n:在A之前的第n次提交
+git stash 保存目录的工作目录和暂存区状态
+    并返回到干净的工作空间
+git stash save 'name'(注解)
+git stash list 给出已存stash
+git stash apply stash@{n} 推回stash恢复到工作状态
+git stash drop stash@{n} 删除对应stash
+git stash pop = git stash apply + git stash drop(顶端)
+git merge <branch1> <branch2> 进行三方合并，两个分支及其祖先
+    若HEAD处于其中，可以省略，将内容复制到工作区和暂存区
+    完成一次提交，得到的合并节点同时指向父commit
+    操作在哪个分支上完成，就在对应分支提交，并向前移动HEAD和branch
+    容易发生冲突，需要进行编辑,然后使用git add .,git commit -m 'resolve"
+    倘若一个branch是另一个的祖先，只会将祖先移动到子孙位置
+git merge next --no-ff 禁用fast-forward合并
+    则会不会发生上一行情况，而是进行新的提交
+但是merge容易混乱(较多人数参与情况下)
+git cat-file -p HEAD/<commit> 显示对象具体信息
+git rebase 修建提交历史基线，俗称"变基"
+git rebase <branch1> <branch2> 找到两个分支节点和祖先，
+    找到共同节点与分支节点间的提交记录，进行重演(不是复制,id变化)
+    使得提交历史线性
+git rebase --onto <branch> <commit>
+    将id到另一个分支的内容进行重演，并使分支移动
+git tag 对某个提交设置不变的别名,避免输入hash
+    git tag v0.1 <commit>
+git init ~/git-server --bare
+    初始化一个本地的远程服务器(裸仓库)
+git push git-server <branch>
+    将本地的消息推送到中央仓库的分支，提交历史的复制，移动分支
+git remote add origin git-server，添加一个远程仓库别名
+git remote -v 查看远程仓库的信息
+git fetch 获取远程仓库的提交历史
+    再merge
+git pull=git fetch+ git merge
+git clone 克隆远程仓库作为本地仓库
+    git clone~/git-server <file>
+
+git verify-pack -v .git/objects/pack/pack-c17f6a18054c1e79c47a8ea4d69ebda78ea9f54a.idx | sort -k 3 -g | tail -5

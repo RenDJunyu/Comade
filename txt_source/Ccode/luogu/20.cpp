@@ -1,0 +1,70 @@
+#include<stdio.h>
+#include<string.h>
+int main()
+{
+	char v[11],e[1000001],L[1000001],b[27]="ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	s[27]="abcdefghijklmnopqrstuvwxyz";
+	int i,p,n=0,N=0,t=0,l=0;
+	scanf("%s\n",v);
+    gets(e);
+	for(i=0;i<=9;i++)
+	{
+		if(v[i]=='\0')
+		{
+			l=i-1;
+			break; 
+		}
+		for(p=0;p<=25;p++)
+		{
+			if(v[i]==b[p]||v[i]==s[p])
+			{
+				n=n*100+p+1;
+			}
+		}
+	}
+	for(i=0;i<100;i++)
+	{
+		if(e[i]=='0')
+		{
+		break;
+		}
+		for(p=0;p<=25;p++)
+			{
+				if(e[i]==b[p]||e[i]==s[p])
+				{
+					N=N*100+p+1;
+				}
+			}
+		if(e[i]==' ')
+		{
+			if(n==N)
+			{
+				L[i]='1';
+				t++;
+			} 
+			else
+			{
+				L[i]='0';
+			}
+			N=0;
+			l++;
+		}
+	}	
+	for(i=0;i<1000000;i++)
+	{
+		if(L[i]=='1')
+		{
+			l=i-l;
+			break;
+		}
+	}
+	if(t==0)
+	{
+		printf("-1");
+	}
+	else
+	{
+		printf("%d %d",t,l);
+	}
+	return 0;
+ } 

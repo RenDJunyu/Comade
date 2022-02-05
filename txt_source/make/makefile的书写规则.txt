@@ -1,0 +1,150 @@
+makefile的书写规则
+传统(老土)
+    
+test: test.o main.o
+	gcc test.o main.o -o test
+main.o: main.c main.h
+	gcc -c main.c
+test.o: test.c main.h
+	gcc -c test.c
+
+更常规，在这种写法中，编译器知道.o和.c的依赖关系，所以不需要写出mian.c
+但是需要注意，.o对应依赖关系下一行可以空、紧接，但是不能是tab制表开头
+有通用规则时候，不要写特殊规则，否则通用不会被执行
+%.o: %.c这告诉make在用默认的.o和.c关系的时候，应该适用什么编译器
+$<，$表示从这里开始是个变量，<指上述依赖关系中，第一个文件名
+
+test: test.o main.o
+	gcc test.o main.o -o test
+main.o: main.h
+test.o: main.h
+
+%.o: %.c
+	gcc -c $<
+
+更常规
+用CC和OBJS替换，^表示上述关系冒号后的所有文件，@表示依赖关系的目标
+
+CC = gcc
+OBJS = main.o test.o
+TARGET:= xxx
+
+$(TARGET): $(OBJS)
+    @echo $^
+    @echo $@(没有@输出命令本身，@则输出命令执行的结果，可以不写)
+	$(CC) $^ -o $@
+$(OBJS): main.h
+
+%.o: %.c            （或者写成 .o.c:
+	$(CC) -c $<
+
+较完整
+
+BASE = /home/blufox/base        （基地址）
+CFLAGS = -o -Wall
+EFILE = $(BASE)/bin/xxx
+INCLS = -I&(LOC)/include
+LIBS = $(LOC)/lib/g_lib.a \     （行末反斜杠表示接续）
+            $(LOC)/lib/h_lib.a
+LOC = /user/local
+CC = gcc
+OBJS = main.o test.o
+
+$(EFILE): $(OBJS)
+    @echo "linking ..."
+    @$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
+
+$(OBJS): xxx.h
+    $(CC) $(CFLAGS) $(INCLS) -c $*.c
+
+通用规则
+
+特殊变量
+    $<   规则的第一个依赖文件名
+    $^   规则的所有依赖文件列表，以空格分隔
+    $@   规则的目标文件名
+    $?   所有比目标文件更新的依赖文件列表，以空格分割
+    $#   传递到脚本的参数个数
+    $*   以一个单字符串显示所有向脚本传递的参数。与位置变量不同，此选项参数可超过9个
+    $$   脚本运行的当前进程ID号
+    $!   后台运行的最后一个进程的进程ID号
+
+多目标：
+    排在第一个称为主目标，make的时候不需要指定
+    伪目标，在后面的需要指定
+        clean:
+            rm $(OBJS)
+            rm $(EFILE)
+
+    clean:
+        rm *~ $(OBJS)       （清除用
+    
+    cleanall:
+        rm *~ $(OBJS)
+        rm  $(TARGET)  
+
+    TESTOBJS: xxx1.o xxx2.o
+    test: $(TESTOBJS)
+        $(CC) -D_TEST_ $(CFLAGS) -o $@ $^       （小测试用，需要新建
+
+    all:$(TARGET) test  （可以同时做多个事情
+
+参数
+    编译后可以添加 ./$(TARGET) $(ARGS) 运行程序
+    make后 ARGS=xxx 传递命令行参数，与下等效
+
+    手动编译    gcc -D ARGS=\"\" -o xxx.c
+        传递变量,\可以换为'
+
+rm等效
+删除一个或数个文件。
+
+方言规则较多：
+    还包括 :=的写法
+
+自动依赖
+
+    手写内容：
+        xx.o: xx.c xx.h
+    自动添加：
+    CFLAGS后面加上-MMD
+    DEPS = $(OBJS:.o=.d)        表示把.o换成.d
+    -include $(DEPS)
+
+        gcc -MMD -c main.c分析引用的头文件，生成main.d文件
+            main.o: main.c sum.h_lib
+            在makefile里可以引用.d文件，
+                -include main.d sum.d
+
+DEL [/P] [/F] [/S] [/Q] [/A[[:]attributes]] names
+ERASE [/P] [/F] [/S] [/Q] [/A[[:]attributes]] names
+
+  names         指定一个或多个文件或者目录列表。
+                通配符可用来删除多个文件。
+                如果指定了一个目录，该目录中的所
+                有文件都会被删除。
+
+  /P            删除每一个文件之前提示确认。
+  /F            强制删除只读文件。
+  /S            删除所有子目录中的指定的文件。
+  /Q            安静模式。删除全局通配符时，不要求确认
+  /A            根据属性选择要删除的文件
+  属性          R  只读文件                     S  系统文件
+                H  隐藏文件                     A  存档文件
+                I  无内容索引文件               L  重分析点
+                -  表示“否”的前缀
+
+删除一个目录。
+
+RMDIR [/S] [/Q] [drive:]path
+RD [/S] [/Q] [drive:]path
+
+    /S      除目录本身外，还将删除指定目录下的所有子目录和
+            文件。用于删除目录树。
+    /Q      安静模式，带 /S 删除目录树时不要求确认
+
+打包
+    gcc -c xxx.c
+    ar rcs xxx.a xxx.o
+或
+    gcc -o xxx xxx.c/o -L.(指定当前目录) -xxx（实质上是.a)

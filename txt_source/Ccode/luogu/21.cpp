@@ -1,0 +1,69 @@
+#include<stdio.h>
+int main()
+{
+	char a[22]="\0",b[22]="\0",c[11]="\0",f='0';
+	int i,p,t=0;
+	scanf("%s",a);
+	for(i=0;i<=20;i++)
+	{
+		if(a[i]=='\0')
+		{
+			break;
+		}
+		b[20-i]=a[i];
+		if(a[i]=='.'||a[i]=='/'||a[i]=='%')
+		{
+			f=a[i];
+			for(i++;i<=20;p++,i++)
+			{
+				if(a[i]!='0')
+				{
+					for(p=0;i<=20;p++,i++)
+					{
+						c[p]=a[i];
+					}
+				}		
+			}
+		}
+	}
+	for(i=0;i<=20;i++)
+	{
+		if(b[i]>'0')
+		{
+			t++; 
+			for(;i<=20;i++)
+			{
+				printf("%c",b[i]);
+			}
+		}
+		
+	}
+	if(t==0)
+	{
+		printf("%d",t);
+	}
+	if(f!='0')
+	{
+		printf("%c",f);	
+	}
+	t=0;
+	if(f!='0')
+	{
+		for(i=10;i>=0;i--)
+		{
+			if(c[i]>'0')
+			{
+				t++;
+				for(;i>=0;i--)
+				{
+					printf("%c",c[i]);
+				}
+			}
+		}
+		if(t==0&&f!='%')
+		{
+			printf("%d",t);
+		}
+	}
+	return 0;
+}
