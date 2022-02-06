@@ -968,4 +968,395 @@ maxlen=max_review_len,truncating='post',padding='post')
 
 ### 7.1 导数与梯度
 
+    导数被定义为变化量的极限。导数本身是标量，但表征了函数值在某个方向上的变化率。沿着坐标轴方向的导数称为偏导数。
+    神经网络中x一般用来表示输入，网络的自变量是网络参数集θ={w1,b1,w2,b2,...}。关心的是误差函数输出L沿着自变量θi方向上的导数。
+        ▽_θL=(𝜕L/𝜕Θ1,𝜕L/𝜕Θ2,...,𝜕L/𝜕Θn)
+    梯度下降算法可以按着向量形式进行更新：Θ'=θ-η·▽_θL，求解最大值(如强化学习求最大化回报函数)时，-变为+，称为梯度上升算法
+    通过梯度下降算法不能保证得到全局最优解，主要由目标函数的非凸性造成。
+    深度学习框架主要实现的算法就是反向传播算法和梯度下降算法
+
+### 7.2 导数常见性质
+
+    基本函数的导数
+        常数函数c，导数为0
+        线性函数y=ax+c，导数为a
+        幂函数x^a，导数为ax^(a-1)
+        指数函数a^x，导数为a^xlna
+        对数函数log_ax，导数为1/(xlna)
+    常用导数性质
+        线性运算，导数的加减=加减的导数
+        乘法，(fg)'=f'g+fg'
+        除法，(f/g)'=(f'g-fg')/g^2,g≠0
+        复合函数的导数，df(g(x))/dx=f'(u)g'(x),u=g(x)
+
+### 7.3 激活函数导数
+
+    Sigmoid函数导数
+        σ(x)=1/(1+e^(-x))
+        dσ(x)/dx=σ(1-σ)
+    ReLU函数导数
+        ReLU(x)=max(0,x)
+        dReLU/dx=1(x≥0) 0(x<0)
+        在反向传播时，不会放大梯度造成梯度爆炸；也不会缩小梯度，造成梯度弥散
+        AlexNet中采用ReLU激活函数，层数达到了8层，后续上百层的也多采用ReLU
+    LeakyReLU函数导数
+        LeakyReLU=x(x≥0) px(x<0)
+        dLeakyReLU/dx=1(x≥0) p(x<0)
+    Tanh函数梯度
+        tanh(x)=2·sigmoid(2x)-1
+        dtanh(x)/dx=1-tanh^2(x)
+
+### 7.4 损失函数梯度
+
+    均方误差函数梯度
+        L=1/2·Σ(yk-ok)^2
+        𝜕L/𝜕oi=oi-yi
+    交叉熵函数梯度
+        Softmax梯度
+            pi=e^(zi)/Σe^(zj)
+            𝜕pi/𝜕zj=pi(1-pj)(i=j) -pi·pj(i≠j)
+        交叉熵梯度
+            L=-Σyklog(pk)
+            𝜕L/𝜕zi=pi(yi+Σyk(k≠i))-yi
+            对于y经过Onehot编码，𝜕L/𝜕zi=pi-yi
+
+### 7.5 全连接层梯度
+
+    单神经元梯度
+        采用Sigmoid激活函数的神经元模型，数学模型σ^(1)=σ(w^(1)^Tx+b^(1))
+            𝜕L/𝜕wj1=(o1-t)o1(1-o1)xj
+        误差对权值wj1的偏导数至于输出值o1、真实值t以及当前权值连接的输入xj有关
+    全连接层梯度
+        𝜕L/𝜕wjk=(ok-tk)ok(1-ok)xj，j为输入，k为输出
+        δk=(ok-tk)ok(1-ok)，表征连接线的终止节点处的误差梯度传播的某种特性，偏导只与起始节点xj，终止节点处δk有关
+
+### 7.6 链式法则
+
+    在不显式推导神经网络的数学表达式的情况下，逐层推导梯度的核心公式
+        dz/dt=𝜕z/𝜕x·dx/dt+𝜕z/𝜕y·dy/dt
+        # 构建梯度记录器 
+        with tf.GradientTape(persistent=True) as tape:
+        # 非tf.Variable 类型的张量需要人为设置记录梯度信息 
+            tape.watch([w1, b1, w2, b2]) 
+            # 构建2 层线性网络 
+            y1 = x * w1 + b1     
+            y2 = y1 * w2 + b2
+        # 独立求解出各个偏导数 
+        dy2_dy1 = tape.gradient(y2, [y1])[0] 
+        dy1_dw1 = tape.gradient(y1, [w1])[0] 
+        dy2_dw1 = tape.gradient(y2, [w1])[0]
+
+### 7.7 反向传播算法
+
+    𝜕L/𝜕wij=oj(1-oj)Σδk^(K)wjk·oi,δj^J=oj(1-oj)Σδk^(K)wjk
+    输出层𝜕L/𝜕wjk=δkoj,δk^(K)=(ok-tk)ok(1-ok)
+    倒数第二层𝜕L/𝜕wij=δj^(J)·oi,δj^(J)=oj(1-oj)Σδk^(K)wjk
+    导数第三层𝜕L/𝜕wni=δi^(I)·on,δi^(I)=oi(1-oi)Σδj^(J)wij
+    通过循环迭代计算每一层每个节点的参数，即可求得当前层的偏导数，从而得到每层权值矩阵W的梯度，再通过梯度下降算法迭代优化网络参数
+
+### 7.8 Himmelblau函数优化实战
+
+    Himmelblau函数是用来测试优化算法的常用样例函数之一
+        f(x,y)=(x^2+y-11)^2+(x+y^2-7)^2
+    以下代码可以得到Himmelblau函数的图像
+        def himmelblau(x): 
+            return (x[0] ** 2 + x[1] - 11) ** 2 + (x[0] + x[1] ** 2 - 7) ** 2
+        x = np.arange(-6, 6, 0.1) # 可视化的x 坐标范围为-6~6 
+        y = np.arange(-6, 6, 0.1) # 可视化的y 坐标范围为-6~6 
+        print('x,y range:', x.shape, y.shape) 
+        # 生成x-y 平面采样网格点，方便可视化 
+        X, Y = np.meshgrid(x, y) 
+        print('X,Y maps:', X.shape, Y.shape) 
+        Z = himmelblau([X, Y]) # 计算网格点上的函数值 
+        # 绘制himmelblau 函数曲面 
+        fig = plt.figure('himmelblau') 
+        ax = fig.gca(projection='3d') # 设置3D 坐标轴 
+        ax.plot_surface(X, Y, Z) # 3D 曲面图 
+        ax.view_init(60, -30) 
+        ax.set_xlabel('x') 
+        ax.set_ylabel('y') 
+        plt.show()
+    Himmelblau函数有四个局部最小值点，且局部最小值都是0
+    利用TF自动求导，不同的初始值得到的极小值数值解不同，即搜索轨迹不同
+        # 参数的初始化值对优化的影响不容忽视，可以通过尝试不同的初始化值， 
+        # 检验函数优化的极小值情况 
+        # [1., 0.], [-4, 0.], [4, 0.], [-2,2]
+        x = tf.constant([4., 0.]) # 初始化参数 
+        
+        for step in range(200):# 循环优化200 次 
+            with tf.GradientTape() as tape: #梯度跟踪 
+                tape.watch([x]) # 加入梯度跟踪列表 
+                y = himmelblau(x) # 前向传播 
+            # 反向传播 
+            grads = tape.gradient(y, [x])[0]  
+            # 更新参数,0.01 为学习率 
+            x -= 0.01*grads 
+            # 打印优化的极小值 
+            if step % 20 == 19: 
+                print ('step {}: x = {}, f(x) = {}' 
+                    .format(step, x.numpy(), y.numpy()))
+
+### 7.9 反向传播算法实战
+
+    不同的激活函数、损失函数，梯度传播表达式不同，更多是利用自动求导工具计算
+    scikit-learn库的工具make_moons能够生成多个线性不可分的2分类数据集
+    数据集
+        N_SAMPLES = 2000 # 采样点数  
+        TEST_SIZE = 0.3 # 测试数量比率 
+        # 利用工具函数直接生成数据集 
+        X, y = make_moons(n_samples = N_SAMPLES, noise=0.2, random_state=100)  
+        # 将2000 个点按着7:3 分割为训练集和测试集 
+        X_train, X_test, y_train, y_test = train_test_split(X, y, 
+        test_size=TEST_SIZE, random_state=42) 
+        print(X.shape, y.shape)
+        # 绘制数据集的分布，X 为2D 坐标，y 为数据点的标签 
+        def make_plot(X, y, plot_name, file_name=None, XX=None, YY=None, preds=None, 
+        dark=False): 
+            if (dark): 
+                plt.style.use('dark_background') 
+            else: 
+                sns.set_style("whitegrid") 
+            plt.figure(figsize=(16,12)) 
+            axes = plt.gca() 
+            axes.set(xlabel="$x_1$", ylabel="$x_2$") 
+            plt.title(plot_name, fontsize=30) 
+            plt.subplots_adjust(left=0.20) 
+            plt.subplots_adjust(right=0.80) 
+            if(XX is not None and YY is not None and preds is not None): 
+                plt.contourf(XX, YY, preds.reshape(XX.shape), 25, alpha = 1, 
+        cmap=plt.cm.Spectral) 
+                plt.contour(XX, YY, preds.reshape(XX.shape), levels=[.5], 
+        cmap="Greys", vmin=0, vmax=.6) 
+            # 绘制散点图，根据标签区分颜色 
+            plt.scatter(X[:, 0], X[:, 1], c=y.ravel(), s=40, cmap=plt.cm.Spectral, 
+        edgecolors='none') 
+            
+            plt.savefig('dataset.svg') 
+            plt.close() 
+        # 调用make_plot 函数绘制数据的分布，其中X 为2D 坐标，y 为标签 
+        make_plot(X, y, "Classification Dataset Visualization ") 
+        plt.show()
+    网络层
+        
+        class Layer: 
+            # 全连接网络层 
+            def __init__(self, n_input, n_neurons, activation=None, weights=None, 
+        bias=None): 
+                """ 
+                :param int n_input: 输入节点数 
+                :param int n_neurons: 输出节点数 
+                :param str activation: 激活函数类型 
+                :param weights: 权值张量，默认类内部生成 
+                :param bias: 偏置，默认类内部生成 
+                """  
+                # 通过正态分布初始化网络权值，初始化非常重要，不合适的初始化将导致网络不收敛 
+                self.weights = weights if weights is not None else np.random.randn(n_input, n_neurons) * np.sqrt(1 / n_neurons) 
+                self.bias = bias if bias is not None else np.random.rand(n_neurons) * 0.1 
+                self.activation = activation # 激活函数类型，如’sigmoid’ 
+                self.last_activation = None # 激活函数的输出值o 
+                self.error = None # 用于计算当前层的delta 变量的中间变量 
+                self.delta = None  # 记录当前层的delta 变量，用于计算梯度 
+            def activate(self, x): 
+                # 前向传播函数 
+                r = np.dot(x, self.weights) + self.bias  # X@W+b 
+                # 通过激活函数，得到全连接层的输出o 
+                self.last_activation = self._apply_activation(r) 
+                return self.last_activation
+            def _apply_activation(self, r): 
+                # 计算激活函数的输出 
+                if self.activation is None: 
+                    return r # 无激活函数，直接返回 
+                # ReLU 激活函数 
+                elif self.activation == 'relu': 
+                    return np.maximum(r, 0) 
+                # tanh 激活函数 
+                elif self.activation == 'tanh': 
+                    return np.tanh(r) 
+                # sigmoid 激活函数 
+                elif self.activation == 'sigmoid': 
+                    return 1 / (1 + np.exp(-r)) 
+                return r 
+            def apply_activation_derivative(self, r): 
+                # 计算激活函数的导数 
+                # 无激活函数，导数为1 
+                if self.activation is None: 
+                    return np.ones_like(r) 
+                # ReLU 函数的导数实现 
+                elif self.activation == 'relu': 
+                    grad = np.array(r, copy=True) 
+                    grad[r > 0] = 1. 
+                    grad[r <= 0] = 0. 
+                    return grad 
+                # tanh 函数的导数实现 
+                elif self.activation == 'tanh': 
+                    return 1 - r ** 2 
+                # Sigmoid 函数的导数实现 
+                elif self.activation == 'sigmoid': 
+                    return r * (1 - r) 
+                return r
+    网络模型
+        class NeuralNetwork: 
+            # 神经网络模型大类 
+            def __init__(self): 
+                self._layers = []  # 网络层对象列表 
+        
+            def add_layer(self, layer): 
+                # 追加网络层 
+                self._layers.append(layer)
+            def feed_forward(self, X): 
+                # 前向传播 
+                for layer in self._layers: 
+                    # 依次通过各个网络层 
+                    X = layer.activate(X) 
+                return X
+            def backpropagation(self, X, y, learning_rate): 
+                # 反向传播算法实现 
+                # 前向计算，得到输出值 
+                output = self.feed_forward(X) 
+                for i in reversed(range(len(self._layers))):  # 反向循环 
+                    layer = self._layers[i]  # 得到当前层对象 
+                    # 如果是输出层 
+                    if layer == self._layers[-1]:  # 对于输出层 
+                        layer.error = y - output  # 计算2 分类任务的均方差的导数 
+                        # 关键步骤：计算最后一层的delta，参考输出层的梯度公式 
+                        layer.delta = layer.error * layer.apply_activation_derivative(output) 
+                    else:  # 如果是隐藏层 
+                        next_layer = self._layers[i + 1]  # 得到下一层对象 
+                        layer.error = np.dot(next_layer.weights, next_layer.delta) 
+                        # 关键步骤：计算隐藏层的delta，参考隐藏层的梯度公式 
+                        layer.delta = layer.error * layer.apply_activation_derivative(layer.last_activation) 
+                for i in range(len(self._layers)): 
+                    layer = self._layers[i] 
+                    # o_i 为上一网络层的输出  
+                    o_i = np.atleast_2d(X if i == 0 else self._layers[i - 1].last_activation) 
+                    # 梯度下降算法，delta 是公式中的负数，故这里用加号 
+                    layer.weights += layer.delta * o_i.T * learning_rate
+    网络训练
+            def train(self, X_train, X_test, y_train, y_test, learning_rate, max_epochs): 
+                # 网络训练函数 
+                # one-hot 编码 
+                y_onehot = np.zeros((y_train.shape[0], 2)) 
+                y_onehot[np.arange(y_train.shape[0]), y_train] = 1
+                mses = [] 
+                for i in range(max_epochs):  # 训练1000 个epoch 
+                    for j in range(len(X_train)):  # 一次训练一个样本 
+                        self.backpropagation(X_train[j], y_onehot[j], learning_rate) 
+                    if i % 10 == 0: 
+                        # 打印出MSE Loss 
+                        mse = np.mean(np.square(y_onehot - self.feed_forward(X_train))) 
+                        mses.append(mse) 
+                        print('Epoch: #%s, MSE: %f' % (i, float(mse))) 
+
+                        # 统计并打印准确率
+                        accuracy=0
+                        y_test_flat=y_test.flatten()
+                        for order,n in enumerate(self.feed_forward(X_test)):
+                            accuracy+=(n[0]<0.5)==y_test_flat[order]
+                        accuracy/=len(y_test_flat)
+                        print('Accuracy: %.2f%%' % (accuracy*100)) 
+                return mses 
+
+        nn = NeuralNetwork() # 实例化网络类 
+        nn.add_layer(Layer(2, 25, 'sigmoid'))  # 隐藏层1, 2=>25 
+        nn.add_layer(Layer(25, 50, 'sigmoid')) # 隐藏层2, 25=>50 
+        nn.add_layer(Layer(50, 25, 'sigmoid')) # 隐藏层3, 50=>25 
+        nn.add_layer(Layer(25, 2, 'sigmoid'))  # 输出层, 25=>2
+        nn.train(X_train, X_test, y_train, y_test,lrate,epoch)
+        需要注意网络权值初始化，可以使用正态分布
+
+### 八、Keras高层接口
+
+    人工智能难题不仅是计算机科学问题，更是数学、认知科学和哲学问题。——Francois Chollet
+    Keras是一个主要由Python语言开发的开源神经网络计算库，被设计为高度模块化和易扩展的高层神经网络接口。Keras库分为前端和后端，后端一般是调用现有的深度学习框架实现底层运算，如Theano、CNTK、TensorFlow等，前端接口是Keras抽象过的一组统一接口函数。用户通过Keras编写的代码可以轻松的切换不同的后端运行。
+    TF2中，Keras被正式确定为TF的高层唯一接口API，只能使用Keras的接口来完成TF层方式的模型搭建与训练。Keras被实现在tf.keras子模块中
+    Keras可以理解为一套搭建与训练神经网络的高层API协议，安装标准的Keras库就可以方便调用，TF中也实现了Keras协议
+
+### 8.1 常见功能模块
+
+    Keras提供了一系类高层的神经网络相关类和函数，如经典数据集加载函数、网络层类、模型容器、损失函数类、优化函数、经典模型类等
+    常见网络类
+        常见的神经网络层，可以使用张量方式的底层接口函数来实现，这些接口函数一般在tf.nn中。更常用的，对于常见的网络层，一般直接使用层方式来完成模型搭建，在tf.keras.layers命名空间中提供了大量常见网络层的类，例如全连接层、激活函数层、池化层、卷积层、循环神经网络层等。对于这些网络层类，只需要在创建时指定网络层的相关参数，并调用__call__方法即可，Keras会自动调用每个层的前向传播逻辑，这些逻辑一般实现在类的call函数中
+            x = tf.constant([2.,1.,0.1])  # 创建输入张量 
+            layer = layers.Softmax(axis=-1)  # 创建Softmax 层 
+            out = layer(x)  # 调用softmax 前向计算，输出为out
+        与  out = tf.nn.softmax(x)  # 调用softmax 函数完成前向计算
+        结果相同
+    网络容器
+        通过Keras提供的网络容器Sequential将多个网络层封装成一个大网络模型，只需要调用网络模型的实例一次
+            network = Sequential([ # 封装为一个网络 
+                layers.Dense(3, activation=None), # 全连接层，此处不使用激活函数 
+                layers.ReLU(),#激活函数层 
+                layers.Dense(2, activation=None), # 全连接层，此处不使用激活函数 
+                layers.ReLU() #激活函数层 
+            ]) 
+            x = tf.random.normal([4,3])
+            out=network(x)
+        Sequential容器也可以通过add()方法继续追加新的网络层
+            network.add(layer.Dense(3))
+            ...
+            network.build(input_shape=(4,4))
+            network.summary()
+        参数个数计算，上一层输入个数*本层权重数+本层权重数，以此类推相加
+        Sequential对象的trainable_variables和variables包含了所有层的待优化张量列表和全部张量列表
+
+### 8.2 模型装配、训练与测试
+
+    在训练网络时，一般的流程是通过前向计算获得网络的输出值，再通过损失函数计算网络误差，然后通过自动求导工具计算梯度并更新，同时间隔性地测试网络的性能。
+    模型装配
+        在Keras中有两个比较特殊的类：keras.Model和keras.layers.Layer类，Layer类是网络层的母类，定义了网络层的一些常见功能，如添加权值、管理权值列表等。Model类是网络的母类，除了具有Layer类的功能，还添加了保存模型、加载模型、训练与测试模型等便捷功能。Sequential也是Model的子类。
+        创建网络后，正常的流程是循环迭代数据集多个Epoch，每次按批产生训练数据、前向计算，然后通过损失函数计算误差值，并反向传播自动计算梯度、更新网络参数。在Keras中提供了compile()和fit()函数。通过compile()函数指定网络使用的优化器对象、损失函数类型、评价指标等设定，这一步称为装配
+            network.compile(optimizer=optimizers.Adam(lr=0.01), 
+                loss=losses.CategoricalCrossentropy(from_logits=True), 
+                metrics=['accuracy'] # 设置测量指标为准确率 
+            )
+    模型训练
+        模型装配王城后，通过fit()函数送入带训练的数据集和验证用的数据集，这一步称为模型训练
+            # 指定训练集为train_db，验证集为val_db,训练5 个epochs，每2 个epoch 验证一次 
+            # 返回训练轨迹信息保存在history 对象中 
+            history = network.fit(train_db, epochs=5, validation_data=val_db, validation_freq=2)
+        train_db为tf.data.Dataset对象，也可以传入Numpy Array类型
+            history.history查看训练记录
+        fit()函数的运行代表了网络的训练过程，训练中产生的历史数据可以通过返回值对象取得
+    模型测试
+        Model类可以方便地预测和测试。验证和测试有所不同
+            out = network.predict(x)
+        简单测试模型的性能，Model.evaluate(db)循环测试完db数据集上所有样本，并输出性能指标
+
+### 8.3 模型保存与加载
+
+    模型训练完成后，需要将模型保存到文件系统上，方便后续的模型测试与部署工作。在训练时间隔性地保存模型状态是好习惯，尤其对于大规模网络。一般大规模的网络需要训练数天乃至数周的时长，定时保存能够避免浪费大量的训练时间和计算资源
+    Keras有三种常用的模型保存与加载方法
+    张量方式
+        网络的状态主要体现在网络的结构以及网络层内部张量数据上，在拥有网络结构源文件的条件下，直接保存网络张量参数到文件系统上是最轻量级的一种方式。
+            Model.save_weight(path),'weights.ckpt'
+        在需要的时候，先创建好网络对象，然后调用网络对象的load_weight(path)即可将指定的模型文件中保存的张量数值写入到当前网络参数中
+            del Model#删除网络对象
+            network = Sequential([layers.Dense(256, activation='relu'), 
+                layers.Dense(128, activation='relu'), 
+                layers.Dense(64, activation='relu'), 
+                layers.Dense(32, activation='relu'), 
+                layers.Dense(10)]) 
+            network.compile(optimizer=optimizers.Adam(lr=0.01), 
+                loss=tf.losses.CategoricalCrossentropy(from_logits=True), 
+                metrics=['accuracy'] 
+            )
+            network.build(input_shape=())
+            # 从参数文件中读取数据并写入当前网络 
+            network.load_weights('weights.ckpt')
+        仅仅保存张量参数的数值，不包含其他的结构参数，但是需要使用相同的网络结构才能正确恢复网络状态，一般在拥有网络源文件的情况下使用
+    网络方式
+        仅需要模型参数文件即可恢复出网络模型。
+            Model.save(path)将模型的结构以及模型的参数保存到path
+            kera.models.load_model(path)即可恢复网络结构和网络参数
+                network.save('model.h5')
+                network = keras.models.load_model('model.h5')
+    SavedModel方式
+        当需要将模型部署到其他平台时，SavedModel方式更具有平台无关性，会新建一个目录
+            tf.saved_model.save(network,path),"any"
+            tf.saved_model.load(path)
+        acc=metrics.CategoricalAccuracy()
+        acc.update_state(y_true,y_pred)用于更新准确率
+
+### 8.4 自定义网络
+
     
