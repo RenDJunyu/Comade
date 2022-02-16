@@ -1583,3 +1583,51 @@ maxlen=max_review_len,truncating='post',padding='post')
 
     基于月牙形状的2分类数据集的过拟合与欠拟合模型
     构建数据集
+        def load_dataset():
+            # 采样点数
+            N_SAMPLES = 1000
+            # 测试数量比率
+            TEST_SIZE = None
+
+            # 从 moon 分布中随机采样 1000 个点，并切分为训练集-测试集
+            X, y = make_moons(n_samples=N_SAMPLES, noise=0.25, random_state=100)
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=42)
+            return X, y, X_train, X_test, y_train, y_test
+    探讨影响
+        def network_layers_influence(X_train, y_train):
+            # 构建 5 种不同层数的网络
+            for n in range(5):
+                # 创建容器
+                model = Sequential()
+                # 创建第一层
+                model.add(layers.Dense(8, input_dim=2, activation='relu'))
+                # 添加 n 层，共 n+2 层
+                for _ in range(n):
+                    model.add(layers.Dense(32, activation='relu'))
+                # 创建最末层
+                model.add(layers.Dense(1, activation='sigmoid'))
+                # 模型装配与训练
+                model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+                model.fit(X_train, y_train, epochs=N_EPOCHS, verbose=1)
+                # 绘制不同层数的网络决策边界曲线
+                # 可视化的 x 坐标范围为[-2, 3]
+                xx = np.arange(-2, 3, 0.01)
+                # 可视化的 y 坐标范围为[-1.5, 2]
+                yy = np.arange(-1.5, 2, 0.01)
+                # 生成 x-y 平面采样网格点，方便可视化
+                XX, YY = np.meshgrid(xx, yy)
+                preds = model.predict(np.c_[XX.ravel(), YY.ravel()])
+                title = "网络层数：{0}".format(2 + n)
+                file = "网络容量_%i.png" % (2 + n)
+                make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/')
+
+## 十、卷积神经网络
+
+    当前人工智能还未达到人类5岁水平，不过在感知方面进步飞快。未来在机器语音、视觉识别领域，五到十年内超越人类没有悬念。——沈向洋
+    深度学习的深度是指网络层数较深，一般有5层以上。
+    本质上深度学习和神经网络所指代的是同一类算法。基于生物神经元数学模型的多层感知机(MLP)实现的网络模型被称为神经网络。层数较少的神经网络被称为浅层神经网络。
+    一种逐层预训练的算法，有效地初始化DBN网络，使得训练大规模、深层数的神经网络成为可能。深层的神经网络被称为深度学习。
+
+### 10.1 全连接网络的问题
+
+    网络的训练过程中，存储网络的参数、缓存计算图模型、梯度信息、输入和中间计算结果需要占用较多的资源

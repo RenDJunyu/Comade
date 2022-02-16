@@ -125,9 +125,34 @@ headers["cookie"]=cookie
 locget = requests.post(submiturl,data=data,headers=headers)
 print(re.findall(r"\"m\":\"[^\"]*\"",locget.text)[0])
 
-
 cookie="_ga=GA1.3.333087132.1615362891; UUkey=0657e401ba9cfeddfbe3f320e901caa0; Hm_lvt_fe30bbc1ee45421ec1679d1b8d8f8453=1621044720; UM_distinctid=17b595e1a2d3cb-00fb08f0da275d-7868786b-384000-17b595e1a2e5a7; eai-sess=890s4pffhfhscc3l0giecvfa56; _csrf=S8mwplVi9KWoF2WQ0TlCeNO7RkVn2lC46wVDJ6pkd1k=; _pv0=vUB5UbRLzmisU1yoPwnHH1h0eMhEnlGSfOwsu3/M20glp/d2ttwUt17+zNvk3XzNQ+76V0aM9owgysha5mN71VtHMlLV5dMxG9qNefmfnTeWAsRImSJvmzYVd4G10Nwo+F1xBrJJFq7Mm2xZ2IiqnSr5+Y8LnvX9cwcPGWcLBOOJNeLrnBXOlRXjrJcPLeje138efvNfdBK6z4dnt2co9tnbus1hOisLW9vByy6KNeb5PjrqI43tXstZb1bWvW8CaEB5gRlNX7jEIMU4GkJSkakfGDg2gFeM2i4+6wNYJQ7r9I1T+50D6usBn5MzI/GIASuNHc0tCRl/9ed5uoo6joDAf6GS8iDBa+or2o7AZOJkZTRyw+XxZrgsxlgtpWwzastpGwJ2kbgYaQAbqeG23cWUVywgbofcoONctgjxAcI=; _pf0=jc1ArDrIT21ne6A8floiFdgVqgXwaAQDYJTOJa6z6cs=; _pc0=TW+XtGdIrpk2rQq6Fd4+xOJ6+PT0bYDKwEYC2ds6sT4Ur863vmkNd+3oDgYv6EnK; iPlanetDirectoryPro=8PaPRGdaYOJ/nZZeNh2hrsz4AiXSmn/ApiOVmVL1fNdGwnTrEllyHEFQExOnX/OiULR59PjGIXJ41L6nZELQM3vvTuytgkOh8vxnEVwUVaLIwe6EdVy7qPlLswcwTIGGr8P8duUmxvDYLhtdLevMW4uDqrSp9fgHafFBHmLqXdUa86UaSl61KuAfbfliSNa6qALU+NJgAGpzzM9jUIvKQZs4A0+hgxMvMxSp75dpxuOyZKrqQdY9VAZLRpvgShk/Wxft2P1jV8M6Ddgtrfx3kR0d69ie5+9gpkwZxwfvmXOdOctfRrMG37fkXVYbv6mr22lFchDooerqNnYkGq4GOAVfK4MYPhTx5yBf/E8fC84hO4gHvvGhZvQyTXx+V0qW; Hm_lvt_48b682d4885d22a90111e46b972e3268=1629799752,1629799760; Hm_lpvt_48b682d4885d22a90111e46b972e3268=1629799785"
 #loclist=[" "," "]#jyt
+locturnurl="https://restapi.amap.com/v3/geocode/regeo?key=729923f88542d91590470f613adb27b5&s=rsv3&language=zh_cn&location="+"%.6f,%.6f"%(float(loclist[0]),float(loclist[1]))+"&extensions=base&callback=jsonp_130471_&platform=JS&logversion=2.0&appname=https%3A%2F%2Fhealthreport.zju.edu.cn%2Fncov%2Fwap%2Fdefault%2Findex&csid=21743429-BD54-4A16-8514-A09CAE606190&sdkversion=1.4.15"
+locturned = requests.get(locturnurl,headers={'referer': referer})
+loctext=locturned.text.split("\"")
+data={
+    'sfymqjczrj': '0','zjdfgj': '0',
+    'sfyrjjh': '0','cfgj': '0','tjgj': '0','nrjrq': '0','rjka': '0','jnmddsheng': '0',
+    'jnmddshi': '0','jnmddqu': '0','jnmddxiangxi': '0','rjjtfs': '0','rjjtfs1': '0',
+    'rjjtgjbc': '0','jnjtfs': '0','jnjtfs1': '0','jnjtgjbc': '0','sfqrxxss': '1',
+    'sfyxjzxgym':'1','sfbyjzrq':'5','jzxgymqk':'6',
+    'sfqtyyqjwdg': '0','sffrqjwdg': '0','sfhsjc': '1','tw': '0','sfcxtz': '0',
+    'sfjcbh': '0','sfcxzysx': '0','qksm': '0','sfyyjc': '0','jcjgqr': '0',
+    'remark': '0','address': loctext[loctext.index("formatted_address")+2],
+    'geo_api_info': '{"type":"complete","info":"SUCCESS","status":1,"ZDa":"jsonp_450605_","position":{"Q":'+loclist[1]+',"R":'+loclist[0]+',"lng":'+loclist[0]+',"lat":'+loclist[1]+'},"message":"Get ipLocation success.Get address success.","location_type":"ip","accuracy":null,"isConverted":true,"addressComponent":{"citycode":"'+loctext[loctext.index("citycode")+2]+'","adcode":"'+loctext[loctext.index("adcode")+2]+'","businessAreas":[],"neighborhoodType":"","neighborhood":"","building":"","buildingType":"","street":"'+loctext[loctext.index("street")+2]+'","streetNumber":"'+loctext[loctext.index("streetNumber")+2]+'","country":"'+loctext[loctext.index("country")+2]+'","province":"'+loctext[loctext.index("province")+2]+'","city":"'+loctext[loctext.index("city")+2]+'","district":"'+loctext[loctext.index("district")+2]+'","township":"'+loctext[loctext.index("township")+2]+'"},"formattedAddress":"'+loctext[loctext.index("formatted_address")+2]+'","roads":[],"crosses":[],"pois":[]}',
+    'area': loctext[loctext.index("province")+2]+" "+loctext[loctext.index("city")+2]+" "+loctext[loctext.index("district")+2],
+    'province': loctext[loctext.index("province")+2],'city': loctext[loctext.index("city")+2],'sfzx': '1','sfjcwhry': '0','sfjchbry': '0',
+    'sfcyglq': '0','gllx': '0','glksrq': '0','jcbhlx': '0','jcbhrq': '0','sfzgn':'1',
+    'ismoved': '0','bztcyy': '0','sftjhb': '0','sftjwh': '0','sfjcqz': '0',
+    'jcqzrq': '0','jrsfqzys': '0','jrsfqzfy': '0','sfyqjzgc': '0','sfsqhzjkk': '1',
+    'sqhzjkkys': '1','gwszgzcs': '0','szgj': '0','szgjcs': '0','fxyy': '0','jcjg': '0'
+}
+headers["cookie"]=cookie
+locget = requests.post(submiturl,data=data,headers=headers)
+print(re.findall(r"\"m\":\"[^\"]*\"",locget.text)[0])
+
+cookie="eai-sess=smp79fp631alc29agipctoalf3; UUkey=6a4032373ce12a9f7aa71f7f98d7825d; _csrf=S8mwplVi9KWoF2WQ0TlCeF1JGS82wucvkhsp3R10a%2Fw%3D; _pv0=mfbFV6AHRlSjYaH60BHOc1Xv70%2Bort9Jf5uKNDDW9CM%2BKKz978t7NsXSZOmR0bH97dnEmpZA1OjLfxy%2BWh1Qw%2Ff1BpOKB44Af4y5HRQqyOvk0rDyjcQLK3bM1m%2FQ0nQcwGxWzpUrSftoElyeEZiXTdZgxFV7oI9NCjygQFtg0JEOjyA4szgQcXKnQIYhpqfKcABtjd3C%2B5J%2FK%2Bam2UBJcz0DE%2FzItH0irqm9zQjdhNZTKywiEQpw9qgDsfpV3mlCf8g2pzN6lAhDQpBWL8%2BrgM1cFLLBNMR0Fgock2kqp%2FzhsOPe6kBQx8E2jL15tcmKS8MK2H547Bq3vlUa6IjYgTELv1h5Jk1E2ik1LlYLkmDVjSaD99XYtijO02KsMwtjo7zDpd0UDLDwUATinyuso986NBhWd4undXQLcVfBVQ4%3D; _pf0=w2nj2GuKO27LiX94o2SmPP1iRxeoQU7FTfL%2BuwpOi0c%3D; _pc0=LovLvnlfs%2BVHLrtT%2BE9jLH%2F%2BL1Hf6fzJTZJ0UkNLK6VkdTq6FpWBzFcAx46soLpQ; iPlanetDirectoryPro=g7QMBKN2VCzvMQMSNJm3F%2BS6beGfgrczn6VT%2B4ppkKQjOWBN1kIuSXa4sVtKwBGvwxw6msXjwtThBi1N6Iousgi2KyqZaEuWM6hpEg41MwDsyl8gZZmvbFNr7Mm9LlKqkRm7M4LzwUeWVQIFpSjSyi5kfTBD7V1I8S0TIQPM9ck6Cf0y9hfDGhdPManvfbaqagAOLoFgsSTpBJXnZ%2BWOPw2LBsPTR763HdmRbiJHBVZ2mHn5hgpJ%2BH68Y3Zadddr9k9loq%2BCNxR9AhPlu90mzRH7Fe2Td7CYLcH5N9wysQnIYnuDe2Dwgyu4ttHb4hRx0wo1heIAyHH4l6JI6QQNNlKegmNaDycqxYsr7ymi8kI%3D; Hm_lvt_48b682d4885d22a90111e46b972e3268=1645008879; Hm_lpvt_48b682d4885d22a90111e46b972e3268=1645008879"
+#loclist=[" "," "]#gxs
 locturnurl="https://restapi.amap.com/v3/geocode/regeo?key=729923f88542d91590470f613adb27b5&s=rsv3&language=zh_cn&location="+"%.6f,%.6f"%(float(loclist[0]),float(loclist[1]))+"&extensions=base&callback=jsonp_130471_&platform=JS&logversion=2.0&appname=https%3A%2F%2Fhealthreport.zju.edu.cn%2Fncov%2Fwap%2Fdefault%2Findex&csid=21743429-BD54-4A16-8514-A09CAE606190&sdkversion=1.4.15"
 locturned = requests.get(locturnurl,headers={'referer': referer})
 loctext=locturned.text.split("\"")

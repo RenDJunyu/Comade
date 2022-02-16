@@ -15,14 +15,14 @@ import tensorflow as tf
 from tensorflow import keras #导入TF子库keras
 from tensorflow.keras import layers,optimizers,datasets,losses,Sequential #导入TF子库
 
-# gpus=tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     try:
-#         #设置GPU为增长式占用
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu,True)
-#     except RuntimeError as e:
-#         print(e)
+gpus=tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        #设置GPU为增长式占用
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu,True)
+    except RuntimeError as e:
+        print(e)
 
 #***以上请勿删除
 
@@ -110,10 +110,10 @@ def network_layers_influence(X_train, y_train):
         yy = np.arange(-1.5, 2, 0.01)
         # 生成 x-y 平面采样网格点，方便可视化
         XX, YY = np.meshgrid(xx, yy)
-        preds = model.predict_classes(np.c_[XX.ravel(), YY.ravel()])
+        preds = model.predict(np.c_[XX.ravel(), YY.ravel()])
         title = "网络层数：{0}".format(2 + n)
         file = "网络容量_%i.png" % (2 + n)
-        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/network_layers')
+        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/')
 
 
 def dropout_influence(X_train, y_train):
@@ -145,10 +145,10 @@ def dropout_influence(X_train, y_train):
         yy = np.arange(-1.5, 2, 0.01)
         # 生成 x-y 平面采样网格点，方便可视化
         XX, YY = np.meshgrid(xx, yy)
-        preds = model.predict_classes(np.c_[XX.ravel(), YY.ravel()])
+        preds = model.predict(np.c_[XX.ravel(), YY.ravel()])
         title = "无Dropout层" if n == 0 else "{0}层 Dropout层".format(n)
         file = "Dropout_%i.png" % n
-        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/dropout')
+        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/')
 
 
 def build_model_with_regularization(_lambda):
@@ -156,9 +156,9 @@ def build_model_with_regularization(_lambda):
     model = Sequential()
     model.add(layers.Dense(8, input_dim=2, activation='relu'))  # 不带正则化项
     # 2-4层均是带 L2 正则化项
-    model.add(layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(_lambda)))
-    model.add(layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(_lambda)))
-    model.add(layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(_lambda)))
+    model.add(layers.Dense(256, activation='relu', kernel_regularizer=keras.regularizers.l2(_lambda)))
+    model.add(layers.Dense(256, activation='relu', kernel_regularizer=keras.regularizers.l2(_lambda)))
+    model.add(layers.Dense(256, activation='relu', kernel_regularizer=keras.regularizers.l2(_lambda)))
     # 输出层
     model.add(layers.Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])  # 模型装配
@@ -203,7 +203,7 @@ def regularizers_influence(X_train, y_train):
         plot_title = "正则化系数：{}".format(_lambda)
         file_name = "正则化网络权值_" + str(_lambda)
         # 绘制网络权值范围图
-        plot_weights_matrix(model, layer_index, plot_title, file_name, output_dir=OUTPUT_DIR + '/regularizers')
+        plot_weights_matrix(model, layer_index, plot_title, file_name, output_dir=OUTPUT_DIR + '/')
         # 绘制不同正则化系数的决策边界线
         # 可视化的 x 坐标范围为[-2, 3]
         xx = np.arange(-2, 3, 0.01)
@@ -211,20 +211,20 @@ def regularizers_influence(X_train, y_train):
         yy = np.arange(-1.5, 2, 0.01)
         # 生成 x-y 平面采样网格点，方便可视化
         XX, YY = np.meshgrid(xx, yy)
-        preds = model.predict_classes(np.c_[XX.ravel(), YY.ravel()])
+        preds = model.predict(np.c_[XX.ravel(), YY.ravel()])
         title = "正则化系数：{}".format(_lambda)
         file = "正则化_%g.svg" % _lambda
-        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/regularizers')
+        make_plot(X_train, y_train, title, file, XX, YY, preds, output_dir=OUTPUT_DIR + '/')
 
 
 def main():
     X, y, X_train, X_test, y_train, y_test = load_dataset()
-    # 绘制数据集分布
-    make_plot(X, y, None, "月牙形状二分类数据集分布.svg")
-    # 网络层数的影响
-    network_layers_influence(X_train, y_train)
-    # Dropout的影响
-    dropout_influence(X_train, y_train)
+    # # 绘制数据集分布
+    # make_plot(X, y, None, "月牙形状二分类数据集分布.svg")
+    # # 网络层数的影响
+    # network_layers_influence(X_train, y_train)
+    # # Dropout的影响
+    # dropout_influence(X_train, y_train)
     # 正则化的影响
     regularizers_influence(X_train, y_train)
 
