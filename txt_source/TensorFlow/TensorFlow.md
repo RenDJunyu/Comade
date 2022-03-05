@@ -1631,3 +1631,583 @@ maxlen=max_review_len,truncating='post',padding='post')
 ### 10.1 全连接网络的问题
 
     网络的训练过程中，存储网络的参数、缓存计算图模型、梯度信息、输入和中间计算结果需要占用较多的资源
+    局部相关性
+        如果网络层的每个输出节点都与所有的输入节点相连接，用于提取所有输入节点的特征信息，这种稠密的连接方式是全连接层参数量大、计算代价高的根本原因。全连接层也称为稠密连接层，输入与输出的关系为
+            o_j=σ(Σw_ij·x_i+bj)
+        可以分析输入节点对输出节点的重要性分布，仅考虑较重要的一部分输入节点，而抛弃重要性较低的部分节点，从而减少权值连接数
+        以实心网络所在的像素为参考点，周边欧式距离≤某个值的像素点以矩形网格表示，网格内的像素点重要性较高，之外的较低。该窗口便被称为感受野(Receptive field)。
+        这种基于距离的重要性分布假设特性称为局部相关性，只关注和自己距离较近的节点。
+    权值共享
+        对于每个输出节点，均使用相同的权值矩阵，就能将网络层的参数量固定
+        共享权值的"局部连接层"就是卷积神经网络
+    卷积运算
+        对于窗口内所有像素，采用权值相乘累加的方式提取特征信息，每个输出节点提取对应感受野区域的特征信息。这种运算其实是信号处理领域的一种标准运算：离散卷积运算。离散卷积运算为两个函数(其中一个经过翻转和平移)相乘的累加。在计算机视觉中，卷积运算基于2D图片函数和2D卷积核，都仅在各自窗口有效区域存在值，其他区域视为0。卷积的结果能够得到新的特征图
+        权值相乘累加中的卷积核函数并没有经过旋转。在深度学习中统一称为卷积核，或Filter、Weight
+        特定卷积核能够分别实现锐化、模糊效果、边缘提取效果
+
+### 10.2 卷积神经网络
+
+    卷积神经网络通过充分利用局部相关性和权值共享的思想，大大减少了网络的参数量，从而提高训练效率，更容易实现超大规模的深层网络。
+    单通道输入和单卷积核
+        ⨀表示哈达玛积，矩阵的对应元素相乘。
+        卷积运算输出倦枕大小由卷积核的大小k，输入X的高度h/w，移动步长s，是否填充等因素共同决定。
+    多通道输入和单卷积核
+        多通道输入的卷积层更为常见，例如彩色图片的RGB三通道。
+        在多通道输入的情况下，卷积核的通道数需要和输入X的通道数量相匹配，卷积核的第i个通道和X的第i个通道运算，得到第i个中间矩阵。
+        一般来说，一个卷积核只能完成某种逻辑的特征提取，当需要同时提取多种逻辑特征时，可以通过增加多个卷积核来得到多种特征，提高神经网络的表达能力，便是多通道输入、多卷积核的情况
+    多通道输入、多卷积核的情况
+        当出现多卷积核时，第i个卷积核与输入X运算得到第i个输出矩阵(也称为输出张量O的通道i)，最后全部的输出矩阵在通道维度上进行拼接(Stack操作，创建输出通道数的新维度)，产生输出张量O，包含了n个通道数
+        每个卷积核的大小k、步长s、填充设定等都是统一设置，才能保证输出的每个通道大小一致。
+    步长
+        感受野密度的控制手段一般是通过移动步长(Strides)实现的
+        步长是指感受野窗口每次移动的长度单位。当步长较小时，有利于提取到更多的特征信息，输出张量的尺寸也更大；较大时，有利于减少计算代价，过滤冗余信息，输出张量的尺寸也更小。
+    填充
+        经过卷积运算后的输出O的高度一般会小于输入X的高宽，在网络模型设计时，有时希望输出O的高宽能够与输入X的高宽相同，从而方便网络参数的设计、残差连接等。一般通过在原输入X的高和宽维度上面进行填充若干无效元素操作：上下、左右填充
+            h'=[(h+2p_h-k)/s]_下取整_1,p_h为上下填充
+            w'=[(w+2p_w-k)/s]_下取整_1,p_w为左右填充
+        在TF中，s=1时，只需要设置参数padding="SAME"，便可自动计算padding数量，使输入输出高宽相等
+
+### 10.3 卷积层实现
+
+    TF中，既可以通过自定义权值的底层实现方式搭建神经网络，也可以直接调用现成的卷积层类的高层方式快速搭建复杂网络。
+    自定义权值
+        tf.nn.conv2d函数可以方便实现2D卷积运算，基于输入X[b,h,w,c_in]和卷积核W[k,k,c_in,c_out]进行卷积运算，得到输出O[b,h',w',c_out]，c_in为输入通道数，c_out为卷积核数量即输出特征图的通道数
+            out = tf.nn.conv2d(x,w,strides=1,padding=[[0,0],[0,0],[0,0],[0,0]])
+            padding参数的设置格式为padding=[[0,0],[上,下],[左,右],[0,0]]
+        自动计算并填充则用padding='SAME'，当s>1时，高、宽将/s，即先padding为可以被s整除3的最小整数，然后/s
+        卷积神经网络层和全连接层一样，可以设置网络带偏置向量，tf.nn.conv2d函数是没有实现偏置向量计算的，添加偏置只需要手动累加张量。
+    卷积层类
+        通过卷积层类layers.Conv2D可以不需要手动定义卷积核W和偏置b张量，直接调用类实例即可完成卷积层的前向计算，实现更加高层和快捷。在TensorFlow中，API的命名有一定的规律，首字母大写的对象一般表示类，全部小写一般表示函数。使用类方式会(在创建类时或build时)自动创建需要的权值张量和偏置向量等，用户不需要记忆卷积核张量的定义格式，因此使用起来更加简单方便，灵活性也会略低。函数方式的接口需要自行定义权值和偏置等，更加灵活和底层。
+        在新建卷积类时，只需要指定卷积核数量参数filters，卷积核大小kernel_size，步长strides，填充padding等即可。
+            layer=layers.Conv2D(4,kernel_size=3,strides=1,padding='SAME')
+        如果卷积核高宽不等，步长行列方向不等，需要将kernel_size设计为tuple格式(k_h,k_w)，strdes设计为(s_h,s_w)
+        创建完成后，通过调用实例(__call__方法)完成前向计算
+        通过类成员trainable_variable直接返回W和b的列表，layer.kernel、layer.bias分别访问W和b张量
+
+### 10.4 LeNet-5实战
+
+    同样基于MNIST手写数字图片数据集训练LeNet-5网络
+        from tensorflow.keras import Sequential 
+        network = Sequential([ # 网络容器 
+            layers.Conv2D(6,kernel_size=3,strides=1), # 第一个卷积层, 6 个3x3 卷积核 
+            layers.MaxPooling2D(pool_size=2,strides=2), # 高宽各减半的池化层 
+            layers.ReLU(), # 激活函数 
+            layers.Conv2D(16,kernel_size=3,strides=1), # 第二个卷积层, 16 个3x3 卷积核 
+            layers.MaxPooling2D(pool_size=2,strides=2), # 高宽各减半的池化层 
+            layers.ReLU(), # 激活函数 
+            layers.Flatten(), # 打平层，方便全连接层处理 
+        
+            layers.Dense(120, activation='relu'), # 全连接层，120 个节点 
+            layers.Dense(84, activation='relu'), # 全连接层，84 节点 
+            layers.Dense(10) # 全连接层，10 个节点 
+        ]) 
+        # build 一次网络模型，给输入X 的形状，其中4 为随意给的batchsz 
+    卷积网络可以显著降低网络参数量，同时增加网络深度
+    损失函数可以通过交叉熵损失函数类新建，通过from_logits=True将softmax激活函数实现在损失函数中，不需要手动添加损失函数，提升数值计算稳定性
+        # 导入误差计算，优化器模块 
+        from tensorflow.keras import losses, optimizers 
+        # 创建损失函数的类，在实际计算时直接调用类实例即可 
+        criteon = losses.CategoricalCrossentropy(from_logits=True) 
+        # 构建梯度记录环境 
+        with tf.GradientTape() as tape:  
+            # 插入通道维度，=>[b,28,28,1] 
+            x = tf.expand_dims(x,axis=3) 
+            # 前向计算，获得10 类别的概率分布，[b, 784] => [b, 10] 
+            out = network(x) 
+            # 真实标签one-hot 编码，[b] => [b, 10] 
+            y_onehot = tf.one_hot(y, depth=10) 
+            # 计算交叉熵损失函数，标量 
+            loss = criteon(y_onehot, out)
+    获得损失值后，通过Tensorflow的梯度记录器tf.GradientTape()来计算损失函数loss对网络参数network.trainabel_variables之间的梯度，并通过optimizer对象自动更新网络权值参数
+        # 自动计算梯度 
+        grads = tape.gradient(loss, network.trainable_variables) 
+        # 自动更新参数 
+        optimizer.apply_gradients(zip(grads, network.trainable_variables)) 
+    在测试阶段，由于不需要记录梯度信息，代码一般不需要写在with tf.GradientTape() as tape环境中。前向计算得到的输出经过softmax函数后，代表了网络预测当前图片输入x属于i类别的概率P(x标签是i|x)。通过argmax函数选取概率最大的元素所在的索引，作为当前x的预测类别，与真实标注y比较，通过计算比较结果中间True的数量并求和来统计预测正确的样本个数，最后除以总样本的个数，得出网络的测试准确度。
+        # 记录预测正确的数量，总样本数量 
+        correct, total = 0,0 
+        for x,y in db_test: # 遍历所有训练集样本 
+            # 插入通道维度，=>[b,28,28,1] 
+            x = tf.expand_dims(x,axis=3) 
+            # 前向计算，获得10 类别的预测分布，[b, 784] => [b, 10] 
+            out = network(x) 
+            # 真实的流程时先经过softmax，再argmax 
+            # 但是由于softmax 不改变元素的大小相对关系，故省去 
+            pred = tf.argmax(out, axis=-1)   
+            y = tf.cast(y, tf.int64) 
+            # 统计预测正确数量 
+            correct += float(tf.reduce_sum(tf.cast(tf.equal(pred, y),tf.float32))) 
+            # 统计预测样本总数 
+            total += x.shape[0] 
+        # 计算准确率 
+        print('test acc:', correct/total)
+
+### 10.5 表示学习
+
+    复杂的卷积神经网络模型也是基于卷积层的堆叠构成的。过去一段时间内，研究人员发现网络层数越深，模型的表达能力越强，也就越有可能取得更好的性能。
+    图片数据的识别过程一般认为也是表示学习的(Representation Learning)的过程，从接受到的原始像素开始，逐渐提取边缘、角点等底层特征，再到纹理等中层特征，再到头部、物体部件等高层特征，最后的网络层基于这些学习到的抽象特征表示做分类逻辑的学习。学习到的特征越高层，越准确，越有利于分类器的分类。
+    应用学习的思想，训练好的卷积神经网络往往能够学习到较好的特征，这种特征的提取方法一般是通用的。将在任务A上训练好的深层神经网络的前面数个特征提取层迁移到任务B上，只需要训练任务B
+    的分类逻辑(表现为网络的最末数层)，即可取得非常好的效果，这种方式是迁移学习的一种，从神经网络角度也称为网络微调。
+
+### 10.6 梯度传播
+
+    卷积层通过移动感受野的方式实现离散卷积操作，通过循环移动感受野的方式并没有改变网络层的可导性，同时梯度的推导也没有变更复杂。
+
+### 10.7 池化层
+
+    在卷积层中，可以通过调节步长参数s实现特征图的高宽成倍缩小，从而降低了网络的参数量。实际上，除了通过设置步长，还有一种专门的网络层可以实现尺寸缩减功能，即为池化层(Pooling Layer)
+    池化层同样基于局部相关性的思想，通过从局部相关的一组元素中进行采样或信息聚合，从而得到新的元素值。最大化池化层(Max Pooling)从局部相关元素中选取最大的一个元素值，平均池化层(Average Pooling)从局部相关元素集中计算平均值并返回。
+    池化层没有需要学习的参数，计算简单，可以有效降低特征图的尺寸，非常适合图片这种类型的数据。
+    通过精心设计池化层感受野的高宽k和步长s参数，可以实现各种降维运算。例如，感受野大小k=2、步长s=2，输出只有输入高宽一半的目的。
+
+### 10.8 BatchNorm层
+
+    卷积神经网络能够使网络参数量大大减少。但是在残差网络出现之前，网络的加深使得网络训练变得不稳定，甚至出现长时间不更新甚至不收敛的现象，同时网络对超参数比较敏感，超参数的微量扰动也会导致网络的训练轨迹完全改变。
+    Google研究人员提出了一种参数标准化的手段，并基于此设计了Batch Normalization(BatchNorm,BN层)。使得网络的超参数的设定更加自由，比如更大的学习率、更随意的网络初始化等，同时网络的收敛速度更快，性能也更好。至此，卷积层、BN层、ReLU层、池化层一度成为网络模型的标配单元块。通过堆叠它们往往可以获得不错的模型性能
+    数据标准化的其中一个好处，对于Sigmoid激活函数，当x<-2或x>2时，导数趋近于0，容易出现梯度弥散，所以可以将输入x标准化映射到0附近的一小段区间
+    总之，网络层输入x分布相近，且在较小范围内时，更有利于函数的优化。可以通过数据标准化操作将数据x映射到x':x'=(x-μ_r)/sqrt(σ_r^2+ε)，μ_r为均值、σ_r^2为方差，ε是为防止出现分母为0错误而设置的较小数字，例如1e-8
+    在基于Batch的训练阶段，获取每个网络层所有输入的统计数据u_r、σ_r^2，Batch内部的均值μ_B和方差σ_B^2可以近似为μ_r、σ_r^。在训练阶段，进行替换，通过标准化输入，并记录每个Batch的统计数据u_B、σ_B^2，用于统计真实的全局u_r、σ_r^2。测试阶段亦是如此
+    标准化运算并没有引入额外的待优化变量，均通过统计得到，不需要参与梯度更新。实际上，为了提高BN层的表达能力，BN层作者引入了"scale and shift"技巧，将x'变量再次映射变换：x"=x'·γ+β
+    γ参数实现对标准化后的x"再次进行缩放，β参数实现对标准化的x'进行平移，两个参数均通过反向传播算法自动优化，实现网络层"按需"缩放平移数据的分布的目的
+    前向传播
+        将BN层的输入记为x，输出记为x"
+        训练阶段
+            首先计算当前Batch的μ_B、σ_B^2，根据x_train"=(x_train-μ_B)·γ/sqrt(σ_B^2+ε)+β，计算BN层的输出
+            同时按照
+                μ_r←momentum·μ_r+(1-momentum)·μ_B
+                σ_r^2←momentum·σ_r^2+(1-momentum)·σ_B^2
+            迭代更新全局训练数据的统计值μ_r和σ_r^2，其中momentum是需要设置一个超参数，用于平衡更新幅度，默认为0.99
+        测试阶段
+            BN层根据x_test"=(x_test-u_r)·γ/sqrt(σ_r^2+ε)+β，计算输出x_test"，其中μ_r、σ_r^2、γ、β均来自训练阶段统计或优化的结果，在测试阶段直接使用，并不会更新这些参数
+    反向更新
+        在训练模式下的反向更新阶段，反向传播算法根据损失L求解梯度𝜕L/𝜕γ和𝜕L/𝜕β，并按着梯度更新法则自动优化γ、β参数
+        需要注意的是，对于2D特征图输入X:[b,h,w,c]，BN层并不是计算每个点的μ_B、σ_B^2，而是在通道轴c上统计每个通道上面所有数据的μ_B、σ_B^2，μ_B、σ_B^2是每个通道上所有其他维度的均值和方差。
+            # 构造输入 
+            x=tf.random.normal([100,32,32,3]) 
+            # 将其他维度合并，仅保留通道维度 
+            x=tf.reshape(x,[-1,3]) 
+            # 计算其他维度的均值 
+            ub=tf.reduce_mean(x,axis=0) 
+        在其他维度计算均值：
+            Layer Norm，统计每个样本的所有特征的均值和方差
+            Instance Norm，统计每个样本的每个通道上特征的均值和方差
+            Group Norm，将c通道分成若干组，统计每个样本的通道组内的特征均值和方差
+    BN层实现
+        通过layers.BatchNormalization()类可以非常方便地实现BN层
+        与全连接层、卷积层不同，BN层的训练阶段和测试阶段的行为不同，需要通过设置training标志位来区分训练模式还是测试模式
+            network = Sequential([ # 网络容器 
+                layers.Conv2D(6,kernel_size=3,strides=1), 
+                # 插入BN 层 
+                layers.BatchNormalization(), 
+                layers.MaxPooling2D(pool_size=2,strides=2), 
+                layers.ReLU(), 
+                layers.Conv2D(16,kernel_size=3,strides=1), 
+                # 插入BN 层 
+                layers.BatchNormalization(), 
+                layers.MaxPooling2D(pool_size=2,strides=2), 
+                layers.ReLU(), 
+                layers.Flatten(), 
+                layers.Dense(120, activation='relu'), 
+                # 此处也可以插入BN 层 
+                layers.Dense(84, activation='relu'),  
+                # 此处也可以插入BN 层 
+                layers.Dense(10)])
+        在训练阶段，需要设置网络的参数training=True以区分BN层是训练还是测试模型
+            with tf.GradientTape() as tape:  
+                # 插入通道维度 
+                x = tf.expand_dims(x,axis=3) 
+                # 前向计算，设置计算模式，[b, 784] => [b, 10] 
+                out = network(x, training=True)
+        在测试阶段，需要设置training=False，避免BN层采用错误的行为
+            for x,y in db_test: # 遍历测试集 
+                # 插入通道维度 
+                x = tf.expand_dims(x,axis=3) 
+                # 前向计算，测试模式 
+                out = network(x, training=False) 
+
+### 10.9 经典卷积网络
+
+    在AlexNet出现之前的网络模型都是浅层的神经网络，Top-5错误率均在25%以上，AlexNet 8层的深层神经网络将Top-5错误率降低至16.4%，性能提升巨大，后续的VGG、GoogleNet模型继续将错误率降低，ResNet的出现首次将网络层数提升至152层
+    AlexNet
+        AlexNet接收224x224彩色图片数据为输入，经过5个卷积层和三个全连接层后得到样本属于1000个类别的概率分布。为了降低特征图的维度，AlexNet在第1、2、5个卷积层后添加了Max Pooling层，网络的参数量达到了6kw个。并且为了能够在当时的显卡设备上训练模型，还将卷积层、前2个全连接层等拆开在两块显卡上面分别训练，最后一层合并到一张显卡上面，进行反向传播更新。
+        创新之处：层数达到了较深的8层；采用了ReLU激活函数，过去的神经网络大多采用Sigmoid激活函数，计算相对复杂，容易出现梯度弥散现象；引入Dropout层，提高了模型的泛化能力，防止过拟合
+    VGG系列
+        同样接收224x224大小的彩色图片数据，经过2个Conv-Conv-Pooling单元，和3个Conv-Conv-Conv-Pooling单元的堆叠，最后通过3层全连接层输出当前图片分别属于1000类别的概率分布。
+        创新之处
+            层数提升至19层；全部采用更小的3x3卷积核，相对于AlexNet中7x7的卷积核，参数量更少，计算代价更低；采用更小的池化层2x2窗口和步长s=2，而AlexNet中是步长s=2、3x3的池化窗口
+    GoogleNet
+        对于输入shape为[b,h,w,c_in]，1x1卷积层的输出为[b,h,w,c_out]，其中c_in为输入数据的通道数，c_out为输出数据的通道数，也是1x1卷积核的数量。1x1卷积核的一个特别之处在于，可以不改变特征图的宽高，而只对通道数c进行变换
+        Google的层数为22，但是参数量只有AlexNet的1/12，性能远好于AlexNet
+        采用模块化设计的思想，通过大量堆叠Inception模块，形成了复杂的网络结构。Inception模块的输入为X，通过4个子网络得到4个网络输出，在通道轴上面进行拼接合并，形成Inception模块的输出。这4个子网络是
+            1x1卷积层；1x1卷积层，再通过一个3x3卷积层；1x1卷积层，再通过一个5x5卷积层；3x3最大池化层，再通过1x1卷积层
+
+### 10.10 CIFAR10与VGG13实战
+
+    MNIST是机器学习最常用的数据集之一，但由于手写数字图片非常简单，并且MNIST数据集只保存了图片灰度信息，并不适合输入设计为RGB三通道的网络模型。
+    CIFAR10数据集由加拿大Canadian Institute For Advanced Research发布，包含了飞机、汽车、鸟、猫等共十大物体的彩色图片，每个种类收集了6000张32x32大小图片共6w张。其中5w作为训练数据集，1w作为测试数据集
+        # 在线下载，加载CIFAR10 数据集 
+        (x,y), (x_test, y_test) = datasets.cifar10.load_data() 
+        # 删除y 的一个维度，[b,1] => [b] 
+        y = tf.squeeze(y, axis=1) 
+        y_test = tf.squeeze(y_test, axis=1) 
+        # 打印训练集和测试集的形状
+        print(x.shape, y.shape, x_test.shape, y_test.shape) 
+        # 构建训练集对象，随机打乱，预处理，批量化 
+        train_db = tf.data.Dataset.from_tensor_slices((x,y)) 
+        train_db = train_db.shuffle(1000).map(preprocess).batch(128) 
+        # 构建测试集对象，预处理，批量化 
+        test_db = tf.data.Dataset.from_tensor_slices((x_test,y_test)) 
+        test_db = test_db.map(preprocess).batch(128) 
+        # 从训练集中采样一个Batch，并观察 
+        sample = next(iter(train_db)) 
+        print('sample:', sample[0].shape, sample[1].shape, 
+            tf.reduce_min(sample[0]), tf.reduce_max(sample[0]))
+    CIFAR10图片识别任务并不简单，主要是由于CIFAR10的图片内容需要大量细节才能呈现，而保存的图片分别率仅有32x32，使得主体部分信息较为模糊，甚至人眼都很难分辨。浅层的神经网络表达能力有限，很难训练优化到较好的性能。
+    将网络实现为2个子网络：卷积子网络和全连接子网络。卷积自网络由5个子模块构成，每个子模块包含了Conv-Conv-MaxPooling单元结构
+        conv_layers = [ # 先创建包含多网络层的列表 
+            # Conv-Conv-Pooling 单元1 
+            # 64 个3x3 卷积核, 输入输出同大小 
+            layers.Conv2D(64, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.Conv2D(64, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            # 高宽减半
+            layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same'), 
+            
+            # Conv-Conv-Pooling 单元2,输出通道提升至128，高宽大小减半 
+            layers.Conv2D(128, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.Conv2D(128, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same'), 
+            
+            # Conv-Conv-Pooling 单元3,输出通道提升至256，高宽大小减半 
+            layers.Conv2D(256, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.Conv2D(256, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same'), 
+        
+            # Conv-Conv-Pooling 单元4,输出通道提升至512，高宽大小减半 
+            layers.Conv2D(512, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.Conv2D(512, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same'), 
+        
+            # Conv-Conv-Pooling 单元5,输出通道提升至512，高宽大小减半 
+            layers.Conv2D(512, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.Conv2D(512, kernel_size=[3, 3], padding="same", activation=tf.nn.relu), 
+            layers.MaxPool2D(pool_size=[2, 2], strides=2, padding='same') 
+        ]
+            # 利用前面创建的层列表构建网络容器 
+        conv_net = Sequential(conv_layers)
+    全连接子网络包含了3个全连接层，每层添加ReLU非线性激活函数，最后一层除外。
+        # 创建3 层全连接层子网络 
+        fc_net = Sequential([ 
+            layers.Dense(256, activation=tf.nn.relu), 
+            layers.Dense(128, activation=tf.nn.relu), 
+            layers.Dense(10, activation=None), 
+        ]) 
+        # build2 个子网络，并打印网络参数信息 
+        conv_net.build(input_shape=[4, 32, 32, 3]) 
+        fc_net.build(input_shape=[4, 512]) 
+        conv_net.summary()
+        fc_net.summary()
+    总参数量相对原始版本少很多。因为将网络实现为2个子网络，在进行梯度更新时，需要合并2个子网络的待优化参数
+        # 列表合并，合并2 个子网络的参数 
+        variables = conv_net.trainable_variables + fc_net.trainable_variables 
+        # 对所有参数求梯度 
+        grads = tape.gradient(loss, variables) 
+        # 自动更新 
+        optimizer.apply_gradients(zip(grads, variables)) 
+
+### 10.11 卷积层变种
+
+    空洞卷积
+        普通的卷积层为了减少网络的参数量，卷积核的设计通常选择较小的1x1和3x3感受野大小。小卷积核使得网络提取特征时的感受野区域有限，但是增大感受野的区域又会增加网络的参数量核计算代价，因此需要权衡设计
+        空洞卷积(Dilated/Atrous Convolution)能够较好地解决这个问题，在普通卷积的感受野上增加一个Dilation Rate参数，用于控制感受野区域的采样步长。采样步长的增大会使得感受野区域增大，但是实际参与运算的点数仍然保持不变
+        注意卷积核窗口的移动步长s和感受野区域的采样步长Dilation Rate不同
+        在使用空洞卷积设置网络模型时，需要精心设计Dilation Rate参数来避免出现网格效应，同时较大的Dilation Rate参数并不利于小物体的检测、语义分割等任务
+            layer = layers.Conv2D(1,kernel_size=3,strides=1,dilation_rate=2)
+        dilation_rate默认为1，普通卷积
+    转置卷积
+        Transposed Convolution/Fractionally Strided Convolution，也称为反卷积/Deconvolution，实际上反卷积在数学上定义为卷积的逆过程，但转置卷积并不能恢复原卷积的输入；通过在输入之间填充大量的padding来实现输出高宽大于输入高宽的效果，从而实现向上采样的目的。
+        o+2p-k为s倍数
+            转置卷积与普通卷积并不互为逆过程，不能恢复出对方的输入内容，仅能恢复出等大小的张量。
+                # 创建X 矩阵，高宽为5x5 
+                x = tf.range(25)+1 
+                # Reshape 为合法维度的张量 
+                x = tf.reshape(x,[1,5,5,1]) 
+                x = tf.cast(x, tf.float32) 
+                # 创建固定内容的卷积核矩阵 
+                w = tf.constant([[-1,2,-3.],[4,-5,6],[-7,8,-9]]) 
+                # 调整为合法维度的张量 
+                w = tf.expand_dims(w,axis=2) 
+                w = tf.expand_dims(w,axis=3) 
+                # 进行普通卷积运算 
+                out = tf.nn.conv2d(x,w,strides=2,padding='VALID')
+                # 普通卷积的输出作为转置卷积的输入，进行转置卷积运算 
+                xx = tf.nn.conv2d_transpose(out, w, strides=2,  
+                    padding='VALID', 
+                    output_shape=[1,5,5,1])
+        o+2p-k不为s倍数
+            当步长s>1时，[(i+2*p-k)/s向下取整运算使得出现多种不同输入尺寸i对应到相同的输出尺寸o上
+            在TF中，不需要手动指定a参数，只需要指定输出尺寸即可，TF会自动推导
+        矩阵角度
+            普通卷积进行的是串行计算，效率低；为了加速运算，可以将卷积核W根据步长重排成稀疏矩阵W'，再通过W'@X'一次性完成运算
+            对于给定O，如果要生成与X同形状大小的张量，可以将W'转置后重排后的O'进行矩阵相乘
+                X'=W'^T@O'，得到的X'通过reshape变为与原来的输入X尺寸一致，内容不同。
+            转置卷积具有"放大特征图"的功能，在生成对抗网络、语义分割等中得到了广泛应用，如DCGAN中的生成器通过堆叠转置卷积层实现逐层"放大"特征图
+        转置卷积实现
+            tf.nn.conv2d_transpose进行转置卷积运算时，需要额外手动设置输出的高度，并不支持自定义padding设置，='VALID'输出大小o=(i-1)s+k，='SAME'输出大小o=i·s
+            也可以通过layers.Conv2DTranspose类创建一个转置卷积层，然后调用实例完成前向计算
+                layer = layers.Conv2DTranspose(1,kernel_size=3,strides=1,padding='VALID') 
+                xx2 = layer(out) # 通过转置卷积层
+    分离卷积
+        普通卷积在对多通道输入进行运算时，卷积核的每个通道与输入的每个通道分别进行卷积运算，得到多通道的特征图，再对应元素相加产生单个卷积核的最终输出
+        分离卷积的计算，卷积核的每个通道与输入的每个通道进行卷积运算，得到多个通道的中间特征。这个多通道的中间特征张量接下来进行多个1x1卷积核的普通卷积运算，得到多个高宽不变的输出，输出在通道轴上进行拼接，从而产生最终的分离卷积层的输出。分离卷积第一步卷积使用单个卷积核，第二个卷积使用多个卷积核
+        分离卷积对于同样的输入和输出，参数量是普通卷积的1/3
+
+### 10.12 深度残差网络
+
+    研究人员发现网络的层数越深，越有可能获得更好的泛化能力，但是当模型加深以后，网络变得越来越难训练，主要是由于梯度弥散和梯度爆炸现象造成的。在较深层数的神经网络中，梯度信息由网络的末层逐层传向网络的首层时，传递的过程中会出现梯度接近于0或梯度值非常大的现象。网络层数越深，这种现象可能会越严重。
+    既然浅层神经网络不容易出现这些梯度现象，可以尝试给深层神经网络添加一种回退到浅层神经网络的机制。
+    通过在输入和输出之间添加一条直线连接的skip connect可以让神经网络具有回退的能力。通过这种方式，网络模型可以自动选择是否经由这两个卷积层完成特征变换，还是直接跳过这中间的卷积层而选择skip connection，亦或结合中间的卷积层和skip connect的输出
+    基于skip connection的深度残差网络(Residual Neural Network,ResNet)算法，在ImageNet数据集上的分类、检测等任务上面均取得了最好性能。
+    ResNet原理
+        ResNet通过在卷积层的输入和输出之间添加skip connection实现层数回退机制，输入x通过两个卷积层，得到特征变换后的输出F(x)，与输入x进行对象元素的相加运算，得到最终输出H(x)
+            H(x)=x+F(x)
+        H(x)为残差模块(Residual Block)。由于被skip connection包围的卷积神经网络需要学习映射F(x)=H(x)-x，故称为残差网络。
+        为了能够满足输入x与卷积层的输出F(x)能够相加运算，需要输入x的shape与F(x)的shape完全一致。
+        当出现shape不一致时，一般通过在skip connection上添加额外的卷积运算环节将输入x变换到与F(x)相同的shape，identity(x)以1x1的卷积运算居多，主要用于调整输入的通道数
+    ResBlock实现
+        深度残差网络并没有增加新的网络层类型，只是在输入和输出之间添加一条skip connection，因此没有针对ResNet的底层实现。在TF中通过调用普通卷积层即可实现残差模块。
+            class BasicBlock(layers.Layer): 
+                # 残差模块类 
+                def __init__(self, filter_num, stride=1): 
+                    super(BasicBlock, self).__init__() 
+                    # f(x)包含了2 个普通卷积层，创建卷积层1 
+                    self.conv1 = layers.Conv2D(filter_num, (3, 3), strides=stride, padding='same') 
+                    self.bn1 = layers.BatchNormalization() 
+                    self.relu = layers.Activation('relu') 
+                    # 创建卷积层2 
+                    self.conv2 = layers.Conv2D(filter_num, (3, 3), strides=1, padding='same') 
+                    self.bn2 = layers.BatchNormalization() 
+        在前向传播，只需要将F(x)和identity(x)相加，并添加ReLU激活函数即可。
+            def call(self, inputs, training=None): 
+                # 前向传播函数 
+                out = self.conv1(inputs) # 通过第一个卷积层 
+                out = self.bn1(out) 
+                out = self.relu(out) 
+                out = self.conv2(out) # 通过第二个卷积层 
+                out = self.bn2(out) 
+                # 输入通过identity()转换 
+                identity = self.downsample(inputs) 
+                # f(x)+x 运算 
+                output = layers.add([out, identity]) 
+                # 再通过激活函数并返回 
+                output = tf.nn.relu(output) 
+                return output
+
+### 10.13 DenseNet
+
+    skip connection的思想在ResNet上取得巨大成功，研究人员开始尝试不同的skip connection方案，其中比较流行的是DenseNet。DenseNet将前面所有层的特征图信息通过skip connect与当前层输出进行聚合，与ResNet的对应位置相加不同，DenseNet采用在通道轴c维度进行拼接操作，聚合特征信息
+    输入X0通过H1卷积层得到输出X1，X1与X0在通道轴上进行拼接，得到聚合后的特征张量，送入H2卷积层，得到输出X2，如此循环，直到最后一层的输出和前面所有层的特征信息进行聚合得到模块的最终输出。这种基于skip connection稠密连接的模块称为dense block
+
+### 10.14 CIFAR10与ResNet18实战
+
+        class BasicBlock(layers.Layer):
+            # 残差模块
+            def __init__(self, filter_num, stride=1):
+                super(BasicBlock, self).__init__()
+                # 第一个卷积单元
+                self.conv1 = layers.Conv2D(filter_num, (3, 3), strides=stride, padding='same')
+                self.bn1 = layers.BatchNormalization()
+                self.relu = layers.Activation('relu')
+                # 第二个卷积单元
+                self.conv2 = layers.Conv2D(filter_num, (3, 3), strides=1, padding='same')
+                self.bn2 = layers.BatchNormalization()
+
+                if stride != 1:# 通过1x1卷积完成shape匹配
+                    self.downsample = Sequential()
+                    self.downsample.add(layers.Conv2D(filter_num, (1, 1), strides=stride))
+                else:# shape匹配，直接短接
+                    self.downsample = lambda x:x
+
+            def call(self, inputs, training=None):
+
+                # [b, h, w, c]，通过第一个卷积单元
+                out = self.conv1(inputs)
+                out = self.bn1(out)
+                out = self.relu(out)
+                # 通过第二个卷积单元
+                out = self.conv2(out)
+                out = self.bn2(out)
+                # 通过identity模块
+                identity = self.downsample(inputs)
+                # 2条路径输出直接相加
+                output = layers.add([out, identity])
+                output = tf.nn.relu(output) # 激活函数
+
+                return output
+
+        class ResNet(keras.Model):
+            # 通用的ResNet实现类
+            def __init__(self, layer_dims, num_classes=10): # [2, 2, 2, 2]
+                super(ResNet, self).__init__()
+                # 根网络，预处理
+                self.stem = Sequential([layers.Conv2D(64, (3, 3), strides=(1, 1)),
+                                        layers.BatchNormalization(),
+                                        layers.Activation('relu'),
+                                        layers.MaxPool2D(pool_size=(2, 2), strides=(1, 1), padding='same')
+                                        ])
+                # 堆叠4个Block，每个block包含了多个BasicBlock,设置步长不一样
+                self.layer1 = self.build_resblock(64,  layer_dims[0])
+                self.layer2 = self.build_resblock(128, layer_dims[1], stride=2)
+                self.layer3 = self.build_resblock(256, layer_dims[2], stride=2)
+                self.layer4 = self.build_resblock(512, layer_dims[3], stride=2)
+
+                # 通过Pooling层将高宽降低为1x1
+                self.avgpool = layers.GlobalAveragePooling2D()
+                # 最后连接一个全连接层分类
+                self.fc = layers.Dense(num_classes)
+
+            def call(self, inputs, training=None):
+                # 通过根网络
+                x = self.stem(inputs)
+                # 一次通过4个模块
+                x = self.layer1(x)
+                x = self.layer2(x)
+                x = self.layer3(x)
+                x = self.layer4(x)
+
+                # 通过池化层
+                x = self.avgpool(x)
+                # 通过全连接层
+                x = self.fc(x)
+
+                return x
+
+            def build_resblock(self, filter_num, blocks, stride=1):
+                # 辅助函数，堆叠filter_num个BasicBlock
+                res_blocks = Sequential()
+                # 只有第一个BasicBlock的步长可能不为1，实现下采样
+                res_blocks.add(BasicBlock(filter_num, stride))
+
+                for _ in range(1, blocks):#其他BasicBlock步长都为1
+                    res_blocks.add(BasicBlock(filter_num, stride=1))
+
+                return res_blocks
+
+        def resnet18():
+            # 通过调整模块内部BasicBlock的数量和配置实现不同的ResNet
+            return ResNet([2, 2, 2, 2])
+
+        def resnet34():
+            # 通过调整模块内部BasicBlock的数量和配置实现不同的ResNet
+            return ResNet([3, 4, 6, 3])
+    在设计深度卷积神经网络时，一般按照特征图高宽h/w逐渐减少，通道数c逐渐增大的经验法则。可以通过堆叠通道数逐渐增大的Res Block来实现高层特征的提取，通过bulid_resblock可以一次完成多个残差模块的新建。
+    通过调整每个Res Block的堆叠数量和通道数可以产生不同的ResNet
+        tf.random.set_seed(2345)
+
+        def preprocess(x, y):
+            # 将数据映射到-1~1
+            x = 2*tf.cast(x, dtype=tf.float32) / 255. - 1
+            y = tf.cast(y, dtype=tf.int32) # 类型转换
+            return x,y
+
+        (x,y), (x_test, y_test) = datasets.cifar10.load_data() # 加载数据集
+        y = tf.squeeze(y, axis=1) # 删除不必要的维度
+        y_test = tf.squeeze(y_test, axis=1) # 删除不必要的维度
+        print(x.shape, y.shape, x_test.shape, y_test.shape)
+
+        train_db = tf.data.Dataset.from_tensor_slices((x,y)) # 构建训练集
+        # 随机打散，预处理，批量化
+        train_db = train_db.shuffle(1000).map(preprocess).batch(512)
+
+        test_db = tf.data.Dataset.from_tensor_slices((x_test,y_test)) #构建测试集
+        # 随机打散，预处理，批量化
+        test_db = test_db.map(preprocess).batch(512)
+        # 采样一个样本
+        sample = next(iter(train_db))
+        print('sample:', sample[0].shape, sample[1].shape,
+            tf.reduce_min(sample[0]), tf.reduce_max(sample[0]))
+
+        def main():
+
+            # [b, 32, 32, 3] => [b, 1, 1, 512]
+            model = resnet18() # ResNet18网络
+            model.build(input_shape=(None, 32, 32, 3))
+            model.summary() # 统计网络参数
+            optimizer = optimizers.Adam(lr=1e-4) # 构建优化器
+
+            for epoch in range(100): # 训练epoch
+
+                for step, (x,y) in enumerate(train_db):
+
+                    with tf.GradientTape() as tape:
+                        # [b, 32, 32, 3] => [b, 10],前向传播
+                        logits = model(x)
+                        # [b] => [b, 10],one-hot编码
+                        y_onehot = tf.one_hot(y, depth=10)
+                        # 计算交叉熵
+                        loss = tf.losses.categorical_crossentropy(y_onehot, logits, from_logits=True)
+                        loss = tf.reduce_mean(loss)
+                    # 计算梯度信息
+                    grads = tape.gradient(loss, model.trainable_variables)
+                    # 更新网络参数
+                    optimizer.apply_gradients(zip(grads, model.trainable_variables))
+
+                    if step %50 == 0:
+                        print(epoch, step, 'loss:', float(loss))
+
+                total_num = 0
+                total_correct = 0
+                for x,y in test_db:
+
+                    logits = model(x)
+                    prob = tf.nn.softmax(logits, axis=1)
+                    pred = tf.argmax(prob, axis=1)
+                    pred = tf.cast(pred, dtype=tf.int32)
+
+                    correct = tf.cast(tf.equal(pred, y), dtype=tf.int32)
+                    correct = tf.reduce_sum(correct)
+
+                    total_num += x.shape[0]
+                    total_correct += int(correct)
+
+                acc = total_correct / total_num
+                print(epoch, 'acc:', acc)
+    ResNet18 的网络参数量共1100 万个，经过50 个Epoch 后，网络的准确率达到了79.3%。在精挑超参数、数据增强等手段加持下，准确率可以达到更高。
+
+## 十一、循环神经网络
+
+    人工智能的强力崛起，可能是人类历史上最好的事情，也可能是最糟糕的事情。——史蒂芬·霍金
+    卷积神经网络利用数据的局部相关性和权值共享的思想大大减少了网络的参数量，非常适合于图片这种具有空间局部相关性的数据，已经被成功地一用到计算机领域的一系列任务上。自然界的信号除了具有空间维度外，还有一个时间维度。具有时间维度的信号非常常见，这类数据并不一定具有局部相关性，同时数据在时间维度上的长度也是可变的，卷积神经网络并不擅长处理此类数据。
+
+### 11.1 序列表示方法
+
+    具有先后顺序的数据一般称为序列，比如随时间而变化的商品价格数据就是非常典型的序列。
+    对于很多信号并不能直接用一个标量数值表示，比如每个时间戳产生长度为n的特征向量。
+    神经网络本质上是一系列的矩阵相乘、相加等数学运算，并不能直接处理字符串类型的数据。如果希望神经网络能够用于自然语言处理任务，则需要把单词或字符转化为数值。
+    把文字编码位数值的过程称为word embedding。one-hot是一种方法，但是one-hot编码是高维度并且极其稀疏的，计算效率较低，并且忽略了单词先天具有的语义相关性。
+    在自然语言处理领域，有专门的一个研究方向在探索如何学习到单词的表示向量(word vector)，使得语义层面的相关性能够很好地通过word vector体现出来。一个衡量词向量之间相关度的方法就是余弦相关度(cosine similarity)
+        similarity(a,b)=cos(θ)=a·b/|a·b|，a和b为两个词向量
+    embedding层
+        在神经网络中，单词的表示向量可以直接通过训练的方式得到，将单词的表示层称为embedding层。embedding层负责把单词编码为某个词向量v，接受的是采用数字编码的单词编号i，系统总单词数量记为Nvocab，输出长度为n的向量v
+            v=f_θ(i|Nvocab,n)
+        embedding层实现起来非常简单，构建一个shape为[Nvocab,n]的查询表对象table，对于任意的单词编号i，只需要查询到对应位置上的向量并返回：v=table[i]
+        embedding层是可训练的，它可放置在神经网络之前，完成单词到向量的转换，得到的表示向量可以继续通过神经网络完成后续任务，并计算误差L，采用梯度下降算法来实现端到端的训练
+        在TF中，通过layers.Embedding(Nvocab,n)来定义一个word embedding层，其中Nvocab参数指定词汇数量，n指定单词向量的长度
+            x = tf.range(10) # 生成10 个单词的数字编码 
+            x = tf.random.shuffle(x) # 打散 
+            # 创建共10 个单词，每个单词用长度为4 的向量表示的层 
+            net = layers.Embedding(10, 4) 
+            out = net(x) # 获取词向量
+            net.embeddings #查看Embedding层内部的查询表table
+            net.embeddings.trainable #张量的可优化属性，即可以通过梯度下降算法优化
+    预训练的词向量
+        Embedding层的查询表是随机初始化的，需要从0开始训练。实际上可以是用预训练的word embedding模型来得到单词的表示方法，基于预训练模型的词向量相当于迁移了整个语义空间的知识，往往能够得到更好的性能。
+        目前应用的比较广泛的预训练模型有Word2Vec和Glove等。它们已经在海量语料库训练得到了较好的词向量表示方法，并可以直接导出学习到的词向量表，方便迁移到其他任务。比如GloVe模型Glove.6B.50d，词汇量为40万，每个单词是用长度为50的向量表示，用户只需要下载对应的模型文件即可。
+            # 从预训练模型中加载词向量表 
+            embed_glove = load_embed('glove.6B.50d.txt') 
+            # 直接利用预训练的词向量表初始化Embedding 层 
+            net.set_weights([embed_glove])
+        经过预训练的词向量模型初始化的Embedding层可以设置为不参与训练：net.trainable=False。如果希望能够学到区别于预训练词向量模型不同的表示方法，可以把Embedding层包含进反向传播算法中去，利用梯度下降来微调单词表示方法
+
+### 11.2 循环神经网络
+
+    
