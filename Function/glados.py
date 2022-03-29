@@ -49,12 +49,12 @@ for i in range(min(30,len(checkdetail))):
     print(checkdetail[i][1:])
 
 #N station
-host='www.nexushd.org'
-origin='http://www.nexushd.org'
-referer='http://www.nexushd.org/signin.php'
-url= "http://www.nexushd.org/signin.php?"
+host='v6.nexushd.org'
+origin='https://v6.nexushd.org'
+referer='https://v6.nexushd.org/signin.php'
+url= "https://v6.nexushd.org/signin.php?"
 user="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56"
-cookie = "c_secure_uid=MTQxMzQ5; c_secure_ssl=bm9wZQ==; c_secure_tracker_ssl=bm9wZQ==; c_secure_login=bm9wZQ==; c_secure_pass=6af69e7fdf6a066a9610cc3d671a201a"
+cookie = "c_secure_uid=MTQxMzQ5; c_secure_pass=6af69e7fdf6a066a9610cc3d671a201a; c_secure_ssl=bm9wZQ==; c_secure_tracker_ssl=bm9wZQ==; c_secure_login=bm9wZQ=="
 
 header={
     'accept-encoding':  'gzip, deflate',
@@ -72,4 +72,4 @@ header={
 }
 
 checkin = requests.post(url,headers=header,data=json.dumps({'content': "1"}))
-print(re.findall("你已经.{20}",checkin.text))
+print(re.findall("你已经.{10}",checkin.text))
