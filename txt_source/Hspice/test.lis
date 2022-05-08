@@ -10,13 +10,13 @@
   lic:  
   lic: FLEXlm: v10.8 
   lic: USER:   86184                HOSTNAME: PC2line 
-  lic: HOSTID: "e86a64c8f38a 00ff97c2fd8f 00ff04ecf589 485f9955e58d 485f9955e58d
+  lic: HOSTID: "e86a64c8f38a 00ff09376914 00ff49a3df8f 485f9955e58d 485f9955e58d
   
   lic: Using FLEXlm license file: 
-  lic: D:\Matlab\licenses\license_PC2line_40623085_R2019b.lic 
+  lic: D:\HSPICE\license1.dat 
   lic: Checkout 1 hspice 
   lic: License/Maintenance for hspice will expire on 31-dec-2030/2030.12 
-  lic: NODE LOCKED license on hostid "e86a64c8f38a 00ff97c2fd8f 00ff04ecf589 485
+  lic: NODE LOCKED license on hostid "e86a64c8f38a 00ff09376914 00ff49a3df8f 485
  f
   lic:   
  Init: read install configuration file: D:\HSPICE\hspice\meta.cfg
@@ -242,6 +242,7 @@
           pua=    -2e-024                 puc=  -2.5e-024         
      pnfactor=    -5e-015                pkt2=-6.53317e-016         
          pua1= -2.37e-024                 pat=    -1e-009         
+  **info** (test.sp:4) DC voltage reset to initial transient source value              in source        0:vc                  new dc=  0.0000D+00
  
 
   
@@ -251,6 +252,17 @@
  ******  option summary
  ******
  runlvl  = 5         bypass  = 2         
+1****** HSPICE -- F-2011.09 32-BIT (Sep  5 2011) winnt ******                   
+ ******  
+ .title just_for_test
+
+  ******  operating point information tnom=  25.000 temp=  27.000 *****
+ ***** operating point status is voltage   simulation time is     0.     
+    node    =voltage      node    =voltage      node    =voltage
+
+ +0:clk     =   0.      0:clkx    =   0.      0:vd      =   5.0000 
+ +0:vin     =   0.      0:vout    =   5.0000  0:vx      =   7.9890m
+
 
           ***** job concluded
 1****** HSPICE -- F-2011.09 32-BIT (Sep  5 2011) winnt ******                   
@@ -267,12 +279,12 @@
 
 
   ******  Circuit Statistics  ******
-  # nodes       =      10 # elements   =       7
-  # resistors   =       1 # capacitors =       0 # inductors   =       0
+  # nodes       =      15 # elements   =       8
+  # resistors   =       0 # capacitors =       0 # inductors   =       0
   # mutual_inds =       0 # vccs       =       0 # vcvs        =       0
   # cccs        =       0 # ccvs       =       0 # volt_srcs   =       4
   # curr_srcs   =       0 # diodes     =       0 # bjts        =       0
-  # jfets       =       0 # mosfets    =       2 # U elements  =       0
+  # jfets       =       0 # mosfets    =       4 # U elements  =       0
   # T elements  =       0 # W elements =       0 # B elements  =       0
   # S elements  =       0 # P elements =       0 # va device   =       0
   # vector_srcs =       0
@@ -281,19 +293,19 @@
   ******  Runtime Statistics (seconds)  ******
 
   analysis           time    # points   tot. iter  conv.iter
-  op point           0.00           1           0
-  dc sweep           0.02        1101        2294
-  readin             0.07
-  errchk             0.01
-  setup              0.01
+  op point           0.02           1           6
+  transient          0.09       10001        2587         951 rev=       165
+  readin             0.18
+  errchk             0.04
+  setup              0.03
   output             0.00
 
 
-           peak memory used         44.32 megabytes
-           total cpu time            0.12 seconds
-           total elapsed time        0.97 seconds
-           job started at     18:38:25 03/24/2022
-           job ended   at     18:38:26 03/24/2022
+           peak memory used         43.54 megabytes
+           total cpu time            0.40 seconds
+           total elapsed time        1.71 seconds
+           job started at     17:18:19 04/18/2022
+           job ended   at     17:18:21 04/18/2022
 
 
   lic: Release hspice token(s) 

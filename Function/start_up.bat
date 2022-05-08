@@ -1,5 +1,5 @@
 
-start "" "D:\Common File\TimTencent\Bin\Tim.exe"
+start "" "D:\Common File\TimTencent\Bin\QQScLauncher.exe"
 ::start "" "D:\Common File\WechatTencent\WeChat\WeChat.exe"
 ::start "D:\dingding\DingtalkLauncher.exe"
 ::start "" "D:\Common File\CloudMusic\CloudMusic\cloudmusic.exe"

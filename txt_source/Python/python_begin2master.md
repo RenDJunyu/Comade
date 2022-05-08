@@ -1695,6 +1695,10 @@
         print("%s: %s" % (package, time.ctime(os.path.getctime(package.location))))
     查看安装包时间
 
+#### 1.6 pyinstaller
+
+    pyinstaller -F -w-i wind.ico setup.py
+
 ## 彩蛋
 
     import __hello__
