@@ -1,19 +1,19 @@
 .title JUST_FOR_TEST
 
 Vdd Vd 0 DC 5
-Vc clk 0 PULSE (0 5 0NS 0.1NS 0.1NS 20NS 40NS)
-Vcx clkx 0 PULSE (0 5 20NS 0.1NS 0.1NS 20NS 40NS)
-Vi Vin 0 PULSE (0 5 0NS 0.1NS 0.1NS 10NS 20NS)
-MNM1 Vin clk Vx 0 n18 W=5u L=1u
-MPM1 Vin clkx Vx Vd p18 W=10u L=1u
-MNM2 Vout Vx 0 0 n18 W=5u L=1u
-MPM2 Vout Vx Vd Vd p18 W=10u L=1u
-
+VinA Ain 0 PULSE (0 5 0NS 0.1NS 0.1NS 50NS 100NS)
+VinB Bin 0 PULSE (0 5 0NS 0.1NS 0.1NS 75NS 150NS)
+Vb Vb1 0 DC 0
+* MPM1 Vd Ain Vout Vd p18 W=3u L=180n
+* MPM2 Vd Bin Vout Vd p18 W=3u L=180n
+MPM1 Vd Vb1 Vout Vd p18 W=1000n L=180n
+MNM1 0  Ain Vout1 0 n18 W=1u L=180n
+MNM2 Vout1 Bin Vout 0 n18 W=1u L=180n
+C1 Vout 0 1p
 * .dc Vb -1 10 0.01
-* .probe dc ro=par('(v(Vin)-v(Vout))/(i1(MNM)+i1(MPM))')
 
-.tran 20p 200n
-.probe tran v(Vin) v(Vout) v(clk) v(Vx)
+.tran 20p 500n
+.probe tran v(Ain) v(Bin) v(Vout) POWER
 
 .temp 27
 .option post accurate probe

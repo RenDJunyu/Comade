@@ -5,7 +5,7 @@ TARGET := test
 $(TARGET):
 	$(PATH)\hspice $(TARGET).sp $(CFLAG)
 	echo %%plot for $(TARGET)>$(TARGET).m
-	echo y=loadsig('$(TARGET).sw0');>>$(TARGET).m
+	echo y=loadsig('$(TARGET).tr0');>>$(TARGET).m
 	echo char=lssig(y)>>$(TARGET).m
 	echo for index=2:1:length(char(:,1))>>$(TARGET).m
 	echo 	flag=0;>>$(TARGET).m

@@ -1,7 +1,7 @@
 * "simulator" "HSPICE" 
 * "version" "F-2011.09 32-BIT"
 * "format" "HSP"
-* "rundate" "17:18:19 04/18/2022 "
+* "rundate" "11:10:37 05/26/2022 "
 * "netlist" "test.sp "
 * "runtitle" ".title just_for_test"
 * time =    0.            
@@ -10,10 +10,10 @@
 .option 
 + gmindc=   1.0000p       
 .nodeset
-+ clk =   0.            
-+ clkx =   0.            
++ ain =   0.            
++ bin =   0.            
++ vb1 =   0.            
 + vd =   5.0000        
-+ vin =   0.            
 + vout =   5.0000        
-+ vx =   7.9890m       
++ vout1 = 124.4833m       
 ***   END: Saved Operating Point ***                     

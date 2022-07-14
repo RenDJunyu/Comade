@@ -54,13 +54,13 @@ def get_code(num=None,cookie=cookie1):
     APIget=requests.get(APIurl,headers=APIheaders)
     # print(APIget.json())
     if num==None:
-        valpng=open("Function/valcode.png","wb")
+        valpng=open("valcode.png","wb")
     else:
-        valpng=open("Function/valcode/valcode"+str(num)+".png","wb")
+        valpng=open("valcode/valcode"+str(num)+".png","wb")
     valpng.write(APIget.content)
     valpng.close()
 
-    image = Image.open('Function/valcode.png')
+    image = Image.open('valcode.png')
     # image = clear_image(image)
     #转化为灰度图
     imgry = image.convert('L')
