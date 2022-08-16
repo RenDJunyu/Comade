@@ -1,6 +1,6 @@
 import requests
 import re
-from health_pro import get_code
+# from health_pro import get_code
 
 headers={
     "accept": "application/json, text/javascript, */*; q=0.01",
