@@ -1,0 +1,62 @@
+***** HSPICE -- F-2011.09 32-BIT (Sep  5 2011) winnt ******
+ Input File: SI_1_2s.sp
+ lic:
+ lic: FLEXlm: v10.8
+ lic: USER:   86184                HOSTNAME: PC2line
+ lic: HOSTID: "e86a64c8f38a 00ff60c088c0 485f9955e58d 485f9955e58d ca5f9955e58d"
+ lic: Using FLEXlm license file:
+ lic: D:\HSPICE\license1.dat
+ lic: Checkout 1 hspice
+ lic: License/Maintenance for hspice will expire on 31-dec-2030/2030.12
+ lic: NODE LOCKED license on hostid "e86a64c8f38a 00ff60c088c0 485f9955e58d 485f
+ lic:
+ init: begin read circuit files,  cpu clock=  1.34E+00
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\AD\
+       option search   = D:\HSPICE\hspice\PARTS\XILINX\
+       option search   = D:\HSPICE\hspice\PARTS\TLINE\
+       option search   = D:\HSPICE\hspice\PARTS\TI\
+       option search   = D:\HSPICE\hspice\PARTS\SIGNET\
+       option search   = D:\HSPICE\hspice\PARTS\PCI\
+       option search   = D:\HSPICE\hspice\PARTS\LIN_TECH\
+       option search   = D:\HSPICE\hspice\PARTS\FET\
+       option search   = D:\HSPICE\hspice\PARTS\DIO\
+       option search   = D:\HSPICE\hspice\PARTS\COMLINE\
+       option search   = D:\HSPICE\hspice\PARTS\BURR_BRN\
+       option search   = D:\HSPICE\hspice\PARTS\BJT\
+       option search   = D:\HSPICE\hspice\PARTS\behave\
+       option search   = D:\HSPICE\hspice\PARTS\AD\
+       option post     =     2.00
+       option runlvl
+       option post
+       option post_v   =    9.601E+03
+       option scale    =     10.0
+       option probe    =     1.00
+       option post     =     1.00
+       option list
+ init: end read circuit files,  cpu clock=  1.45E+00 memory=    543 kb
+ init: begin check errors,  cpu clock=  1.45E+00
+ **warning**  No DC path to ground from node        0:                noise_gnd
+ init: end check errors,  cpu clock=  1.74E+00 memory=   2444 kb
+ init: begin setup matrix, pivot=     0 cpu clock=  1.74E+00
+       establish matrix -- done,  cpu clock=  1.74E+00 memory=   2474 kb
+       re-order matrix -- done,  cpu clock=  1.76E+00 memory=   2474 kb
+ init: end setup matrix,  cpu clock=  1.77E+00 memory=   2767 kb
+ dcop: begin dcop,  cpu clock=  1.78E+00
+ dcop: end dcop,  cpu clock=  1.82E+00 memory=   2767 kb  tot_iter=       7
+ output: SI_1_2s.tr0
+ sweep: tran tran0    begin, stop_t=  1.00E-07 #sweeps=**** cpu clock=  1.82E+00
+ tran: time= 1.0283E-08 tot_iter=      76 conv_iter=      38 cpu clock= 1.84E+00
+ tran: time= 2.0183E-08 tot_iter=     142 conv_iter=      71 cpu clock= 1.85E+00
+ tran: time= 3.0083E-08 tot_iter=     208 conv_iter=     104 cpu clock= 1.87E+00
+ tran: time= 4.0082E-08 tot_iter=     348 conv_iter=     162 cpu clock= 1.90E+00
+ tran: time= 5.0282E-08 tot_iter=     416 conv_iter=     196 cpu clock= 1.90E+00
+ tran: time= 6.0262E-08 tot_iter=     570 conv_iter=     260 cpu clock= 1.93E+00
+ tran: time= 7.0162E-08 tot_iter=     636 conv_iter=     293 cpu clock= 1.95E+00
+ tran: time= 8.0062E-08 tot_iter=     702 conv_iter=     326 cpu clock= 1.97E+00
+ tran: time= 9.0262E-08 tot_iter=     770 conv_iter=     360 cpu clock= 1.98E+00
+ tran: time= 1.0000E-07 tot_iter=     836 conv_iter=     393 cpu clock= 1.99E+00
+ sweep: tran tran0    end,  cpu clock=  2.00E+00 memory=   2777 kb
+>info:         ***** hspice job concluded
+ lic: Release hspice token(s)

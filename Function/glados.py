@@ -30,13 +30,13 @@ header={
     'sec-fetch-site': 'same-origin',
     'user-agent': user1
 }
-checkin = requests.post(url1,headers=header,data=json.dumps({'token': "glados.network"}))
-state = requests.get(url2,headers={'accept':accept,'referer': referer,'user-agent':user2,'cookie': cookie})
-print(re.findall(r"\"message\":\"[^\"]*\"",checkin.text))
-print(re.findall(r"\"leftDays\":\"[^\"]*\"",state.text))
-checkdetail=re.findall(":checkin:[\d-]*",checkin.text)
-for i in range(min(30,len(checkdetail))):
-    print(checkdetail[i][1:])
+# checkin = requests.post(url1,headers=header,data=json.dumps({'token': "glados.network"}))
+# state = requests.get(url2,headers={'accept':accept,'referer': referer,'user-agent':user2,'cookie': cookie})
+# print(re.findall(r"\"message\":\"[^\"]*\"",checkin.text))
+# print(re.findall(r"\"leftDays\":\"[^\"]*\"",state.text))
+# checkdetail=re.findall(":checkin:[\d-]*",checkin.text)
+# for i in range(min(30,len(checkdetail))):
+#     print(checkdetail[i][1:])
 
 cookie="_ga=GA1.2.926605631.1615797851; _gid=GA1.2.1585235980.1646478051; koa:sess=eyJ1c2VySWQiOjc2MzM0LCJfZXhwaXJlIjoxNjcyMzk4MjIyMzUzLCJfbWF4QWdlIjoyNTkyMDAwMDAwMH0=; koa:sess.sig=viwsNjRupdQ3ZKTvKHH7Y7P2JBE; _gat_gtag_UA_104464600_2=1"
 header['cookie']=cookie
