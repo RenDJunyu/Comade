@@ -20,9 +20,9 @@ headers={
     "x-requested-with": "XMLHttpRequest"
 }
 referer = 'https://healthreport.zju.edu.cn/ncov/wap/default/index?from=history'
-loclist=["120.125568305122","30.269340549046"]#school
 submiturl='https://healthreport.zju.edu.cn/ncov/wap/default/save'
 
+loclist=["120.125568305122","30.269340549046"]#school yq
 locturnurl="https://restapi.amap.com/v3/geocode/regeo?key=729923f88542d91590470f613adb27b5&s=rsv3&language=zh_cn&location="+"%.6f,%.6f"%(float(loclist[0]),float(loclist[1]))+"&extensions=base&callback=jsonp_130471_&platform=JS&logversion=2.0&appname=https%3A%2F%2Fhealthreport.zju.edu.cn%2Fncov%2Fwap%2Fdefault%2Findex&csid=21743429-BD54-4A16-8514-A09CAE606190&sdkversion=1.4.15"
 locturned = requests.get(locturnurl,headers={'referer': referer})
 loctext=locturned.text.split("\"")
@@ -75,6 +75,33 @@ print(res)
 
 cookie="_ga=GA1.3.1994190377.1592554949; Hm_lvt_35da6f287722b1ee93d185de460f8ba2=1652886165; eai-sess=j7ea3gb83v3uusr0sds5g9ait4; UUkey=97b71b97e5b2ab23a0ea3f2364972794; _csrf=S8mwplVi9KWoF2WQ0TlCeCNkacbzbf5Viu%2F5yMblFvA%3D; _pv0=5liAmpO7PItbBIWWKWI6iXzd%2BxhWcgjEbLyccuOE0o9VBgYLO3WUx78dMkmOw2QYVHWyB%2FWAAE0dwLWtbFdbJoOP2YkQsEn2BPbf%2BA1xyAFCHMuFMmG5rF%2BZD2ML0brV2gPJurJpAS3m7cRoYRl6aOnl%2F0vCsIZXK59rSArFpiDj%2FbcOlCch8POA3yTSu9zvbOgesNSBsi6IP2shhmeG46wrypOSA0h0aFKLyhrKIMi8vBsKMrFIgnDZNBrnPXNkHKJRpT06IwTAYU4V%2BYSLg%2FqavpzWvGT2j%2B76v3TqALly8uGnNBLuJ%2BcaflQiK5DnWJGeuaqA%2B3RKkGVnK3TxJuGUISazWKeUEbK6hbz%2BkymABayoHr3%2F9EW0L5beSqHM93jd4gs6lsZaeO0BQZBM3dlNuVmNS3IIr1zx8A0T%2Fe4%3D; _pf0=gDksGFW7BA5gaCh%2B6N5nLXU%2BWASzpMN00lrk4qF5nls%3D; _pc0=LyrkC5TQTK71GPh0A40MWDnpPP7Vy8QQ34uNc12DUIFxrnI9IhdFeqrwva0ltwX2; iPlanetDirectoryPro=UdYk0I9HjXxz0QYuM3kpAUqdoRggd2Npcz43wcfwLHy%2B0GH6EFKwyvzWVrxxuMWSw8vJIywai0AkJqyAcFjX5MtKI2RdpZQw11dNZMUgpVbtcYrdoGzGRM8Z6%2BZZ1uVN%2Ff7stD4LiZL6bjf0hxzPpkhZVEUlYPdPoaRUfmpxqgKhQbI64KDkZBolHkrqyQp81IvVH428WDf5PHZg9ZuYEhhDGrA9aqmY0zyWj4NFHWMjF9iXVNMY69K7r52jSNxpvTNKIHN3yKg46%2Fi4%2F7ulkOnjk8o2mETVZSje6gzgZPi2zy5l1bHqA3opkW5Jwrv5%2F6O6zHq1SqkRqKaDXV422si0oB3UPIBG3V0h3cHOM%2F3gRu9%2FnG6LZaI2wHmH6zWqNCegSgpR7NMNJ%2BO6XVtDhQ%3D%3D; Hm_lvt_48b682d4885d22a90111e46b972e3268=1656292872; Hm_lpvt_48b682d4885d22a90111e46b972e3268=1656292872"
 #loclist=[" "," "]#ssy
+
+headers["cookie"]=cookie
+locget = requests.post(submiturl,data=data,headers=headers)
+res=locget.json()['m']
+print(res)
+
+loclist=["120.19546881700518","30.268695033427175"]#school yq
+locturnurl="https://restapi.amap.com/v3/geocode/regeo?key=729923f88542d91590470f613adb27b5&s=rsv3&language=zh_cn&location="+"%.6f,%.6f"%(float(loclist[0]),float(loclist[1]))+"&extensions=base&callback=jsonp_130471_&platform=JS&logversion=2.0&appname=https%3A%2F%2Fhealthreport.zju.edu.cn%2Fncov%2Fwap%2Fdefault%2Findex&csid=21743429-BD54-4A16-8514-A09CAE606190&sdkversion=1.4.15"
+locturned = requests.get(locturnurl,headers={'referer': referer})
+loctext=locturned.text.split("\"")
+
+data={
+    # "verifyCode": get_code(cookie=cookie),
+    "sfzx":"1","sfjcwhry":"0","sfcyglq":"0","sftjwh":"0","sftjhb":"0","bztcyy":"0","fjsj":"0","created_uid":"0","sfjchbry":"0","sfsfbh":"0",
+    "jhfjsftjwh":"0","jhfjsftjhb":"0","szsqsfybl":0,"sfsqhzjkk":"1","sqhzjkkys":"1","sfygtjzzfj":0,"sfymqjczrj":"0","sfyrjjh":"0","nrjrq":"0",
+    "rjjtfs1":"0","jnjtfs1":"0","sfqrxxss":"1","sffrqjwdg":"0","sfqtyyqjwdg":"0","sfhsjc":"1","zgfx14rfh":"0","sfyxjzxgym":"1",
+    "sfbyjzrq":"5","jzxgymqk":"6","campus":"\u7389\u6cc9\u6821\u533a","internship":"2",
+    'address': loctext[loctext.index("formatted_address")+2],
+    'geo_api_info': '{"type":"complete","info":"SUCCESS","status":1,"ZDa":"jsonp_450605_","position":{"Q":'+loclist[1]+',"R":'+loclist[0]+',"lng":'+loclist[0]+',"lat":'+loclist[1]+'},"message":"Get ipLocation success.Get address success.","location_type":"ip","accuracy":null,"isConverted":true,"addressComponent":{"citycode":"'+loctext[loctext.index("citycode")+2]+'","adcode":"'+loctext[loctext.index("adcode")+2]+'","businessAreas":[],"neighborhoodType":"","neighborhood":"","building":"","buildingType":"","street":"'+loctext[loctext.index("street")+2]+'","streetNumber":"'+loctext[loctext.index("streetNumber")+2]+'","country":"'+loctext[loctext.index("country")+2]+'","province":"'+loctext[loctext.index("province")+2]+'","city":"'+loctext[loctext.index("city")+2]+'","district":"'+loctext[loctext.index("district")+2]+'","township":"'+loctext[loctext.index("township")+2]+'"},"formattedAddress":"'+loctext[loctext.index("formatted_address")+2]+'","roads":[],"crosses":[],"pois":[]}',
+    'area': loctext[loctext.index("province")+2]+" "+loctext[loctext.index("city")+2]+" "+loctext[loctext.index("district")+2],
+    'province': loctext[loctext.index("province")+2],
+    'city': loctext[loctext.index("city")+2],
+}
+# print(loctext[loctext.index("formatted_address")+2])
+
+cookie="eai-sess=ij9jsmbp0n3pfce6u3md77i6l2; UUkey=0c0c5af15abe3ce21d7c65b5b098ff64; _csrf=S8mwplVi9KWoF2WQ0TlCeJOkz67qpCI9hAbeAHXfCi0%3D; _pv0=A6IE4c6Y6RITBnttXJ850Iqf0pYQiTxQYn5Sa1f7v6GnjZujmnKErqPAddSy%2FOedSHYYF67%2BUxhEtPzYpY%2FIEXKXHnb0mphAQztNPGfaPD1BGPB4i8LFEVBwQBy69rSfR7Qn8pfp0td9P9jVuy6tibHSnEuMOCurr3VPtnBPYxqWrzEoYEUaMoKRuyVSG4N%2Ftp14CuU5gdPk5JD3UziN%2Fqv5agLU74Q%2F2tdXJglmoZQmEZLPGhV05awOrh87xA%2BgBDIep%2B5155REgD9JOcqe2nmzW0pwNHA6LK5MwRrQnYv7Qv%2FmU9W8%2BrVWJUPqkWA%2B3kAi%2BFv%2F%2FYNakcc7FKlFilb613ZgthNKweKGhr7au6mTKhWz6ewBOxvgLFXUUD3w8DY%2BCcd%2Fs5dH5a4HYtAPjrZPdQ3fExXA4N9NXfuiHgc%3D; _pf0=GfTaya9VWfaiS9aSvcMjQa6vt5odoyucWRRqViRi%2F8U%3D; _pc0=cLUqoUFsQJomUg%2FPuEWR0vjvQ8ODv3F%2BQnEyD12yogveoFPZ8QP6uVNSdLfvGuUn; iPlanetDirectoryPro=oijRtOZYOl%2BaSySm5IqFvf09QIoLuNmLMDHINK6e%2FS%2B180Jv%2Fx2qOdM7Tb39BocjD0dYhhFdFin%2BWg1d8DsgTmh4jslRNm1fzRpcQN%2Bq85fhonK9qrYnZWOD8o0LFCVRKu5zFtWlRHRi%2BsoNXO6vx%2BrqFgnZ%2B%2FIwI7UcLpc3%2FOGmJLfxTPbsoZkFSvKpFpZLYoXt4A00XfOirH41%2FZGlGGWVJ84aYJofsAna7609qJd5AUt24QHC%2F2K%2B175UdyiXyoXiQJh8BaR8IaTa3sgEW2%2Bo9O08TmldEgpRvnMGlt6nFsBTtgnX3PG%2B8zaW%2FXeGtqsOPTSd20iXhhdSdjeHjOm2EzUOzMsi4CIbnBew%2F5w%3D; Hm_lvt_48b682d4885d22a90111e46b972e3268=1662625575; Hm_lpvt_48b682d4885d22a90111e46b972e3268=1662625588"
+#loclist=[" "," "]#jyt fre pzc ,loc hjc
 
 headers["cookie"]=cookie
 locget = requests.post(submiturl,data=data,headers=headers)

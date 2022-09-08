@@ -8,7 +8,7 @@ url= "http://nexushd.org/signin.php?"
 host='www.nexushd.org'
 origin='http://www.nexushd.org'
 referer='http://www.nexushd.org/signin.php'
-cookie = "c_secure_uid=MTQxMzQ5; c_secure_pass=6af69e7fdf6a066a9610cc3d671a201a; c_secure_ssl=bm9wZQ%3D%3D; c_secure_tracker_ssl=bm9wZQ%3D%3D; c_secure_login=bm9wZQ%3D%3D"
+cookie = "c_secure_uid=MTQxMzQ5; c_secure_ssl=bm9wZQ%3D%3D; c_secure_tracker_ssl=bm9wZQ%3D%3D; c_secure_login=bm9wZQ%3D%3D; c_secure_pass=23628beb4ce3f38c2df15ef9bc5f7f02"
 
 header={
     'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
