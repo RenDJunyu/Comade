@@ -5,7 +5,7 @@ Shapely==1.7.1
 cityscapesScripts==2.1.7
 mock==4.0.3
 cloudpickle==0.5.3
-numpy==1.16.2
+numpy==1.22.0
 torchfile==0.1.0
 ipdb==0.12.2
 imagesize==1.2.0
