@@ -1,2 +1,22 @@
-﻿  Driver.c
-D:\Windows Kits\10\Include\10.0.19041.0\shared\ntdef.h(201,1): fatal  error C1189: #error:  "No Target Architecture"
+﻿  Building 'KmdfHelloworld' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Debug\KmdfHelloworld.inf
+  Stamping [Version] section with DriverVer=10/02/2022,14.46.19.283
+  KmdfHelloworld.vcxproj -> F:\ZJU\Comade\driver_proj\KmdfHelloworld\x64\Debug\KmdfHelloworld.sys
+  Done Adding Additional Store
+  Successfully signed: F:\ZJU\Comade\driver_proj\KmdfHelloworld\x64\Debug\KmdfHelloworld.sys
+  
+  Driver is 'Universal'.
+  ........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  F:\ZJU\Comade\driver_proj\KmdfHelloworld\x64\Debug\KmdfHelloworld\kmdfhelloworld.cat
+  Done Adding Additional Store
+  Successfully signed: F:\ZJU\Comade\driver_proj\KmdfHelloworld\x64\Debug\KmdfHelloworld\kmdfhelloworld.cat
+  

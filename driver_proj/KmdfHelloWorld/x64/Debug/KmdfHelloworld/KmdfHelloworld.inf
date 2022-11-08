@@ -1,0 +1,80 @@
+;
+; KmdfHelloworld.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=KmdfHelloworld.cat
+DriverVer = 10/02/2022,14.46.19.283
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+KmdfHelloworld_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+KmdfHelloworld.sys  = 1,,
+;
+
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NTamd64
+
+[Standard.NTamd64]
+%KmdfHelloworld.DeviceDesc%=KmdfHelloworld_Device, Root\KmdfHelloworld ; TODO: edit hw-id
+
+[KmdfHelloworld_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+KmdfHelloworld.sys
+
+;-------------- Service installation
+[KmdfHelloworld_Device.NT.Services]
+AddService = KmdfHelloworld,%SPSVCINST_ASSOCSERVICE%, KmdfHelloworld_Service_Inst
+
+; -------------- KmdfHelloworld driver install sections
+[KmdfHelloworld_Service_Inst]
+DisplayName    = %KmdfHelloworld.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\KmdfHelloworld.sys
+
+;
+;--- KmdfHelloworld_Device Coinstaller installation ------
+;
+
+[KmdfHelloworld_Device.NT.CoInstallers]
+AddReg=KmdfHelloworld_Device_CoInstaller_AddReg
+CopyFiles=KmdfHelloworld_Device_CoInstaller_CopyFiles
+
+[KmdfHelloworld_Device_CoInstaller_AddReg]
+;
+
+
+[KmdfHelloworld_Device_CoInstaller_CopyFiles]
+;
+
+
+[KmdfHelloworld_Device.NT.Wdf]
+KmdfService =  KmdfHelloworld, KmdfHelloworld_wdfsect
+[KmdfHelloworld_wdfsect]
+KmdfLibraryVersion = 1.15
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "KmdfHelloworld Installation Disk"
+KmdfHelloworld.DeviceDesc = "KmdfHelloworld Device"
+KmdfHelloworld.SVCDESC = "KmdfHelloworld Service"

@@ -1,5 +1,5 @@
 ;
-; KmdfHelloWorld.inf
+; KmdfHelloworld.inf
 ;
 
 [Version]
@@ -7,19 +7,19 @@ Signature="$WINDOWS NT$"
 Class=System ; TODO: specify appropriate Class
 ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
 Provider=%ManufacturerName%
-CatalogFile=KmdfHelloWorld.cat
+CatalogFile=KmdfHelloworld.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
 PnpLockdown=1
 
 [DestinationDirs]
 DefaultDestDir = 12
-KmdfHelloWorld_Device_CoInstaller_CopyFiles = 11
+KmdfHelloworld_Device_CoInstaller_CopyFiles = 11
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
-KmdfHelloWorld.sys  = 1,,
+KmdfHelloworld.sys  = 1,,
 WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
 
 ;*****************************************
@@ -30,48 +30,48 @@ WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-%KmdfHelloWorld.DeviceDesc%=KmdfHelloWorld_Device, Root\KmdfHelloWorld ; TODO: edit hw-id
+%KmdfHelloworld.DeviceDesc%=KmdfHelloworld_Device, Root\KmdfHelloworld ; TODO: edit hw-id
 
-[KmdfHelloWorld_Device.NT]
+[KmdfHelloworld_Device.NT]
 CopyFiles=Drivers_Dir
 
 [Drivers_Dir]
-KmdfHelloWorld.sys
+KmdfHelloworld.sys
 
 ;-------------- Service installation
-[KmdfHelloWorld_Device.NT.Services]
-AddService = KmdfHelloWorld,%SPSVCINST_ASSOCSERVICE%, KmdfHelloWorld_Service_Inst
+[KmdfHelloworld_Device.NT.Services]
+AddService = KmdfHelloworld,%SPSVCINST_ASSOCSERVICE%, KmdfHelloworld_Service_Inst
 
-; -------------- KmdfHelloWorld driver install sections
-[KmdfHelloWorld_Service_Inst]
-DisplayName    = %KmdfHelloWorld.SVCDESC%
+; -------------- KmdfHelloworld driver install sections
+[KmdfHelloworld_Service_Inst]
+DisplayName    = %KmdfHelloworld.SVCDESC%
 ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
 StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-ServiceBinary  = %12%\KmdfHelloWorld.sys
+ServiceBinary  = %12%\KmdfHelloworld.sys
 
 ;
-;--- KmdfHelloWorld_Device Coinstaller installation ------
+;--- KmdfHelloworld_Device Coinstaller installation ------
 ;
 
-[KmdfHelloWorld_Device.NT.CoInstallers]
-AddReg=KmdfHelloWorld_Device_CoInstaller_AddReg
-CopyFiles=KmdfHelloWorld_Device_CoInstaller_CopyFiles
+[KmdfHelloworld_Device.NT.CoInstallers]
+AddReg=KmdfHelloworld_Device_CoInstaller_AddReg
+CopyFiles=KmdfHelloworld_Device_CoInstaller_CopyFiles
 
-[KmdfHelloWorld_Device_CoInstaller_AddReg]
+[KmdfHelloworld_Device_CoInstaller_AddReg]
 HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
 
-[KmdfHelloWorld_Device_CoInstaller_CopyFiles]
+[KmdfHelloworld_Device_CoInstaller_CopyFiles]
 WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
 
-[KmdfHelloWorld_Device.NT.Wdf]
-KmdfService =  KmdfHelloWorld, KmdfHelloWorld_wdfsect
-[KmdfHelloWorld_wdfsect]
+[KmdfHelloworld_Device.NT.Wdf]
+KmdfService =  KmdfHelloworld, KmdfHelloworld_wdfsect
+[KmdfHelloworld_wdfsect]
 KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
-DiskName = "KmdfHelloWorld Installation Disk"
-KmdfHelloWorld.DeviceDesc = "KmdfHelloWorld Device"
-KmdfHelloWorld.SVCDESC = "KmdfHelloWorld Service"
+DiskName = "KmdfHelloworld Installation Disk"
+KmdfHelloworld.DeviceDesc = "KmdfHelloworld Device"
+KmdfHelloworld.SVCDESC = "KmdfHelloworld Service"

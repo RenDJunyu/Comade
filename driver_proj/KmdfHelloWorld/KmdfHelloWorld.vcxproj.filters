@@ -19,7 +19,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="KmdfHelloWorld.inf">
+    <Inf Include="KmdfHelloworld.inf">
       <Filter>Driver Files</Filter>
     </Inf>
   </ItemGroup>
@@ -27,5 +27,10 @@
     <ClCompile Include="Driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HelloDRIVER.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
